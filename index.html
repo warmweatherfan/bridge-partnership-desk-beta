@@ -753,12 +753,55 @@ function clearSkillFilter(elem){
   elem.classList.add('on');
   var resultsEl=document.getElementById('browse-results');
   // Filter out players who have restricted visibility and don't include me
-  var others_all=players.filter(function(p){return p.uid!==me.uid;});
-  var others=others_all
+  var others=players.filter(function(p){return p.uid!==me.uid;})
     .filter(function(p){
-      if(!p.visibleTo)return true; // visible to everyone
+      // Visibility filter
+      if(!p.visibleTo)return true;
       if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
       return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+    })
+    .filter(function(p){return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;})
+    .filter(function(p){
+      if(!browseFilters.venue)return true;
+      return p.venues&&p.venues[browseFilters.venue]!==undefined;
+    })
+    .filter(function(p){
+      if(!browseFilters.date)return true;
+      if(!p.venues)return false;
+      var vList=browseFilters.venue?[browseFilters.venue]:Object.keys(p.venues);
+      return vList.some(function(v){
+        var vd=p.venues[v];
+        if(!vd)return false;
+        if(TOURNAMENTS.hasOwnProperty(v))return vd[browseFilters.date]!==undefined;
+        return Array.isArray(vd)&&vd.indexOf(browseFilters.date)>=0;
+      });
+    })
+    .filter(function(p){
+      if(!browseFilters.session||!browseFilters.venue||!browseFilters.date)return true;
+      if(!TOURNAMENTS.hasOwnProperty(browseFilters.venue))return true;
+      if(!p.venues||!p.venues[browseFilters.venue])return false;
+      var sess=p.venues[browseFilters.venue][browseFilters.date]||[];
+      return Array.isArray(sess)&&sess.indexOf(browseFilters.session)>=0;
+    })
+    .filter(function(p){
+      if(!browseFilters.system)return true;
+      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+      return sysList.indexOf(browseFilters.system)>=0;
+    })
+    .filter(function(p){
+      if(!browseFilters.role)return true;
+      if(!p.teamPrefs)return false;
+      var searchRole=browseFilters.role;
+      var profileRole=searchRole
+        .replace("Looking for a 0-499 player","I am a 0-499 player")
+        .replace("Looking for a Life Master","I am a Life Master");
+      return Object.keys(p.teamPrefs).some(function(v){
+        return Object.keys(p.teamPrefs[v]).some(function(ds){
+          return Object.keys(p.teamPrefs[v][ds]).some(function(s){
+            return p.teamPrefs[v][ds][s]===profileRole||p.teamPrefs[v][ds][s]===searchRole;
+          });
+        });
+      });
     });
   if(resultsEl)resultsEl.innerHTML=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
   else renderBrowse();
@@ -917,12 +960,55 @@ function renderMessages(){
   var convo=activeThread?(threads[activeThread]||[]):[];
   var ap=activeThread?players.find(function(p){return p.uid===activeThread;}):null;
   // Filter out players who have restricted visibility and don't include me
-  var others_all=players.filter(function(p){return p.uid!==me.uid;});
-  var others=others_all
+  var others=players.filter(function(p){return p.uid!==me.uid;})
     .filter(function(p){
-      if(!p.visibleTo)return true; // visible to everyone
+      // Visibility filter
+      if(!p.visibleTo)return true;
       if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
       return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+    })
+    .filter(function(p){return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;})
+    .filter(function(p){
+      if(!browseFilters.venue)return true;
+      return p.venues&&p.venues[browseFilters.venue]!==undefined;
+    })
+    .filter(function(p){
+      if(!browseFilters.date)return true;
+      if(!p.venues)return false;
+      var vList=browseFilters.venue?[browseFilters.venue]:Object.keys(p.venues);
+      return vList.some(function(v){
+        var vd=p.venues[v];
+        if(!vd)return false;
+        if(TOURNAMENTS.hasOwnProperty(v))return vd[browseFilters.date]!==undefined;
+        return Array.isArray(vd)&&vd.indexOf(browseFilters.date)>=0;
+      });
+    })
+    .filter(function(p){
+      if(!browseFilters.session||!browseFilters.venue||!browseFilters.date)return true;
+      if(!TOURNAMENTS.hasOwnProperty(browseFilters.venue))return true;
+      if(!p.venues||!p.venues[browseFilters.venue])return false;
+      var sess=p.venues[browseFilters.venue][browseFilters.date]||[];
+      return Array.isArray(sess)&&sess.indexOf(browseFilters.session)>=0;
+    })
+    .filter(function(p){
+      if(!browseFilters.system)return true;
+      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+      return sysList.indexOf(browseFilters.system)>=0;
+    })
+    .filter(function(p){
+      if(!browseFilters.role)return true;
+      if(!p.teamPrefs)return false;
+      var searchRole=browseFilters.role;
+      var profileRole=searchRole
+        .replace("Looking for a 0-499 player","I am a 0-499 player")
+        .replace("Looking for a Life Master","I am a Life Master");
+      return Object.keys(p.teamPrefs).some(function(v){
+        return Object.keys(p.teamPrefs[v]).some(function(ds){
+          return Object.keys(p.teamPrefs[v][ds]).some(function(s){
+            return p.teamPrefs[v][ds][s]===profileRole||p.teamPrefs[v][ds][s]===searchRole;
+          });
+        });
+      });
     });
   var h='<div class="page">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Messages</div><button class="btn" style="margin-top:0" onclick="tPicker()">&#9993; New</button></div>';
@@ -1024,6 +1110,7 @@ function renderProfile(){
   h+='<div id="vis-panel">'+(visMode==='selected'?buildVisPanel():'')+'</div></div>';
   h+='<label class="flabel">Note to Partners</label>';
   h+='<textarea class="finput" id="p-note" oninput="markDirty()" placeholder="Experience, conventions, what you\'re looking for...">'+(me.note||"")+'</textarea>';
+  h+='<div id="prof-banner-bottom"></div>';
   h+='<button class="btn-big" onclick="saveProfile()">Save Profile</button>';
   h+='<div class="sec-div"><div class="sec-lbl">Change Password</div>';
   h+='<label class="flabel">New password</label><div class="pw-wrap"><input class="finput" type="password" id="p-newpw" placeholder="New password"/><button class="pw-toggle" onclick="tPw(\'p-newpw\')">Show</button></div>';
@@ -1152,7 +1239,8 @@ function saveProfile(){
   savePlayer(me).then(function(){return loadPlayers();}).then(function(){
     _profileDirty=false;
     setHTML("prof-banner",'<div class="banner ok">Profile saved!</div>');
-    setTimeout(function(){setHTML("prof-banner","");},3000);
+    setHTML("prof-banner-bottom",'<div class="banner ok">Profile saved!</div>');
+    setTimeout(function(){setHTML("prof-banner","");setHTML("prof-banner-bottom","");},3000);
     var u=el("topbar-name");if(u)u.textContent=me.displayName;
   });
 }
