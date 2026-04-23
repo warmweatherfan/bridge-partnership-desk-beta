@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bridge Partnership Desk</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--felt:#1a3a2a;--felt-dark:#0f2019;--gold:#c9a84c;--gold-light:#e8c96a;--gold-dim:#7a6230;--cream:#f5f0e8;--cream-dark:#e0d8c8;--card:#fdfaf5;--td:#1a1208;--tm:#4a3f28;--tl:#8a7a5a;--border:#d0c8a8;--red:#c0392b}
+    body{font-family:Georgia,serif;background:var(--felt-dark);color:var(--cream);min-height:100vh}
+    .topbar{background:#0a1812;border-bottom:1px solid var(--gold-dim);padding:13px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+    .topbar-logo{color:var(--gold);font-weight:bold;font-size:18px}
+    .topbar-user{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--cream)}
+    .btn-sm{padding:5px 11px;background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:4px;cursor:pointer;font-size:12px;font-family:Georgia,serif}
+    .tabbar{display:flex;background:#0a1812;border-bottom:1px solid var(--gold-dim);position:sticky;top:48px;z-index:50;overflow-x:auto}
+    .tab{flex:1;min-width:60px;padding:11px 4px;text-align:center;cursor:pointer;font-size:12px;color:var(--cream);opacity:0.5;background:none;border:none;border-bottom:2px solid transparent;font-family:Georgia,serif;white-space:nowrap}
+    .tab.active{color:var(--gold);opacity:1;border-bottom-color:var(--gold)}
+    .page{padding:16px 14px 60px;max-width:700px;margin:0 auto}
+    .page-title{color:var(--gold);font-size:22px;font-weight:bold;margin-bottom:4px}
+    .page-sub{color:var(--cream);opacity:0.5;font-size:14px;font-style:italic;margin-bottom:16px}
+    .card{background:var(--card);border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--border);border-left:4px solid var(--gold-dim);position:relative}
+    .card-name{font-weight:bold;font-size:17px;color:var(--td);margin-bottom:4px}
+    .card-mp{font-size:13px;color:#7a6230;font-weight:bold;margin-bottom:6px}
+    .skill-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:bold;margin-bottom:8px}
+    .skill-Beginner{background:#e8f5e9;color:#2e7d32}
+    .skill-Intermediate{background:#fff3e0;color:#e65100}
+    .skill-Advanced{background:#e8eaf6;color:#283593}
+    .skill-Expert{background:#fce4ec;color:#880e4f}
+    .card-meta{font-size:13px;color:var(--tm);line-height:1.9;margin-bottom:6px}
+    .venue-block{margin-bottom:8px;padding:8px 10px;background:#f5f0e8;border-radius:5px;border-left:3px solid var(--gold-dim)}
+    .venue-name{font-weight:bold;font-size:14px;color:var(--td);margin-bottom:3px}
+    .venue-dates{font-size:13px;color:var(--tm);margin-bottom:2px}
+    .venue-sessions{font-size:12px;color:var(--tl);font-style:italic}
+    .venue-role{font-size:12px;color:#880e4f;margin-top:2px;font-style:italic}
+    .card-note{font-size:14px;color:var(--tm);font-style:italic;border-top:1px solid #e8e0cc;padding-top:8px;margin-top:6px;line-height:1.5}
+    .btn{padding:8px 16px;border-radius:4px;border:1px solid var(--gold-dim);background:var(--felt);color:var(--gold);font-size:14px;cursor:pointer;font-family:Georgia,serif;margin-top:10px;margin-right:6px}
+    .btn-red{background:#c0392b;color:white;border-color:#c0392b}
+    .btn-gold{background:var(--gold-dim);color:var(--gold-light);border-color:var(--gold)}
+    .btn-big{width:100%;padding:12px;background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold);border-radius:4px;font-size:16px;cursor:pointer;font-family:Georgia,serif;margin-top:8px}
+    .fsel{padding:8px 10px;background:rgba(15,32,25,0.95);border:1px solid var(--gold-dim);color:var(--cream);border-radius:4px;font-size:14px;font-family:Georgia,serif}
+    .skill-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+    .skill-pill{padding:5px 10px;border-radius:20px;border:1px solid var(--gold-dim);background:rgba(15,32,25,0.95);color:var(--cream);font-size:13px;cursor:pointer;font-family:Georgia,serif}
+    .skill-pill.on{background:var(--gold-dim);color:var(--gold-light)}
+    .form-box{background:var(--card);border-radius:8px;padding:18px;border:1px solid var(--border)}
+    .flabel{font-size:11px;font-weight:bold;color:var(--tl);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px;margin-top:12px}
+    .flabel-note{font-weight:normal;text-transform:none;letter-spacing:0;font-size:11px}
+    .finput{width:100%;padding:10px 12px;border:1px solid var(--cream-dark);border-radius:4px;font-size:15px;color:var(--td);background:white;font-family:Georgia,serif}
+    .finput:focus{outline:none;border-color:var(--gold-dim)}
+    textarea.finput{resize:vertical;min-height:80px}
+    .pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+    .pill{padding:6px 12px;border-radius:20px;border:1px solid var(--cream-dark);background:white;color:var(--tm);font-size:14px;cursor:pointer;user-select:none}
+    .pill.on{background:var(--felt);color:var(--gold);border-color:var(--gold-dim)}
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .login-box{background:var(--card);border-radius:10px;padding:32px 24px;width:100%;max-width:400px;border:1px solid var(--border)}
+    .login-suits{font-size:28px;letter-spacing:8px;text-align:center;margin-bottom:10px}
+    .login-title{font-weight:bold;font-size:22px;color:var(--td);text-align:center;margin-bottom:4px}
+    .login-sub{font-size:14px;color:var(--tl);font-style:italic;text-align:center;margin-bottom:20px}
+    .login-toggle{text-align:center;margin-top:14px;font-size:13px;color:var(--tl)}
+    .login-toggle span{color:var(--gold-dim);cursor:pointer;text-decoration:underline}
+    .privacy-note{background:#f0ece0;border-radius:4px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--tm);border-left:3px solid var(--gold-dim);line-height:1.6}
+    .thread-list{background:rgba(10,24,18,0.85);border-radius:6px;border:1px solid var(--gold-dim);margin-bottom:12px;max-height:180px;overflow-y:auto}
+    .thread-item{padding:11px 14px;border-bottom:1px solid rgba(122,98,48,0.2);cursor:pointer}
+    .thread-item.active{background:rgba(201,168,76,0.14)}
+    .thread-name{font-weight:bold;color:var(--cream);font-size:15px}
+    .thread-preview{font-size:12px;color:var(--cream);opacity:0.38;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .thread-unread .thread-name{color:var(--gold)}
+    .thread-unread .thread-preview{opacity:0.85}
+    .chat-box{background:var(--card);border-radius:6px;border:1px solid var(--border);overflow:hidden}
+    .chat-hdr{padding:12px 14px;background:#f8f4ec;border-bottom:1px solid var(--cream-dark);font-weight:bold;color:var(--td);font-size:15px}
+    .chat-msgs{height:240px;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+    .msg-row{display:flex;flex-direction:column}
+    .msg-row.mine{align-items:flex-end}
+    .msg-row.theirs{align-items:flex-start}
+    .bubble{max-width:76%;padding:8px 13px;border-radius:14px;font-size:15px;line-height:1.4}
+    .mine .bubble{background:var(--felt);color:var(--cream);border-radius:14px 14px 3px 14px}
+    .theirs .bubble{background:#ece8dc;color:var(--td);border-radius:14px 14px 14px 3px}
+    .msg-actions{font-size:11px;color:var(--tl);margin-top:2px;cursor:pointer}
+    .chat-foot{display:flex;gap:8px;padding:10px 12px;background:#f8f4ec;border-top:1px solid var(--cream-dark);flex-direction:column}
+    .reply-banner{font-size:12px;color:var(--tl);background:#ece8dc;padding:5px 10px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+    .chat-foot-row{display:flex;gap:8px}
+    .chat-input{flex:1;padding:9px 12px;border:1px solid var(--cream-dark);border-radius:20px;font-size:15px;color:var(--td);background:white;font-family:Georgia,serif;outline:none}
+    .banner{padding:10px 14px;border-radius:4px;font-size:14px;margin-bottom:12px}
+    .banner.ok{background:rgba(46,125,50,0.12);border:1px solid #4caf50;color:#2e7d32}
+    .banner.err{background:rgba(192,57,43,0.1);border:1px solid var(--red);color:var(--red)}
+    .empty{text-align:center;padding:40px 20px;color:var(--cream);opacity:0.38;font-style:italic;font-size:16px}
+    .loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:var(--gold);font-size:16px;text-align:center;padding:20px}
+    .picker{background:var(--card);border-radius:6px;border:1px solid var(--border);margin-bottom:12px;max-height:200px;overflow-y:auto}
+    .picker-hdr{padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:bold;color:var(--tl);letter-spacing:1px;text-transform:uppercase}
+    .picker-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+    .picker-item:hover{background:#f5f0e8}
+    .pw-wrap{position:relative}
+    .pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tl);font-size:13px;font-family:Georgia,serif}
+    .sec-div{margin-top:20px;padding-top:16px;border-top:1px solid var(--cream-dark)}
+    .sec-lbl{font-size:12px;font-weight:bold;color:var(--tl);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+    .venue-cal-block{background:#f5f0e8;border-radius:6px;padding:12px;margin-bottom:10px;border:1px solid var(--cream-dark)}
+    .venue-cal-title{font-weight:bold;font-size:14px;color:var(--td);margin-bottom:8px}
+    .cal-wrap{background:white;border:1px solid var(--cream-dark);border-radius:6px;padding:10px}
+    .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .cal-month-lbl{font-weight:bold;font-size:14px;color:var(--td)}
+    .cal-nav{background:none;border:1px solid var(--cream-dark);border-radius:4px;padding:3px 9px;cursor:pointer;font-size:15px;color:var(--tm);font-family:Georgia,serif}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+    .cal-day-lbl{text-align:center;font-size:10px;font-weight:bold;color:var(--tl);padding:2px 0}
+    .cal-day{text-align:center;padding:6px 2px;border-radius:3px;cursor:pointer;font-size:12px;color:var(--td);border:1px solid transparent}
+    .cal-day:hover{background:var(--cream-dark)}
+    .cal-day.sel{background:var(--felt);color:var(--gold);border-color:var(--gold-dim);font-weight:bold}
+    .cal-day.past{opacity:0.3;cursor:not-allowed;pointer-events:none}
+    .cal-day.empty{pointer-events:none}
+    .cal-tags{margin-top:7px;font-size:12px;color:var(--tm);line-height:1.8}
+    .cal-tag{display:inline-block;padding:1px 7px;background:#ece8dc;border-radius:3px;margin-right:3px;margin-bottom:2px;font-size:11px}
+    .session-block{margin-top:8px;padding:8px;background:white;border-radius:4px;border:1px solid var(--cream-dark)}
+    .session-title{font-size:12px;font-weight:bold;color:var(--tl);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px}
+    .bcal-wrap{background:rgba(15,32,25,0.95);border:1px solid var(--gold-dim);border-radius:6px;padding:10px;margin-bottom:10px}
+    .bcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+    .bcal-lbl{text-align:center;font-size:10px;font-weight:bold;color:var(--gold-dim);padding:2px 0}
+    .bcal-day{text-align:center;padding:7px 2px;border-radius:3px;cursor:pointer;font-size:13px;color:var(--cream);border:1px solid transparent}
+    .bcal-day:hover{background:rgba(201,168,76,0.2)}
+    .bcal-day.bsel{background:var(--gold-dim);color:var(--gold-light);font-weight:bold;border-color:var(--gold)}
+    .bcal-day.past{opacity:0.3;cursor:not-allowed;pointer-events:none}
+    .bcal-day.empty{pointer-events:none}
+    .admin-section{background:var(--card);border-radius:8px;padding:16px;margin-bottom:16px;border:1px solid var(--border)}
+    .admin-section h3{font-size:16px;font-weight:bold;color:var(--td);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--cream-dark)}
+    .admin-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream-dark);font-size:14px;color:var(--td)}
+    .admin-row:last-child{border-bottom:none}
+    .admin-add-row{display:flex;gap:8px;margin-top:10px}
+    .admin-input{flex:1;padding:8px 11px;border:1px solid var(--cream-dark);border-radius:4px;font-size:14px;color:var(--td);background:white;font-family:Georgia,serif}
+    .tourn-card{background:#f5f0e8;border-radius:6px;padding:12px;margin-bottom:10px;border:1px solid var(--cream-dark)}
+    .tourn-card-title{font-weight:bold;font-size:14px;color:var(--td);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  </style>
+</head>
+<body>
+<script>
+var cfg={apiKey:"AIzaSyDkyedmAmGz7ENKP0FFRgoylvlIAJXMJAo",authDomain:"partnership-desk.firebaseapp.com",projectId:"partnership-desk",databaseURL:"https://partnership-desk-default-rtdb.firebaseio.com",storageBucket:"partnership-desk.firebasestorage.app",messagingSenderId:"499703914483",appId:"1:499703914483:web:9f9c9995cf6dbef703bc86"};
+firebase.initializeApp(cfg);
+var auth=firebase.auth();
+var db=firebase.database();
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+var SKILL_LEVELS=["Beginner","Intermediate","Advanced","Expert"];
+var SYSTEMS=["2/1 GF","Acol","Precision","SAYC","Any"];
+var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var TEAM_PREFS=["My team is looking for a 4th player","My partner and I are looking for another pair","I want to join a team"];
+var PROAM_PREFS=["I am a 0-499 player","I am a Life Master"];
+var PROAM_SEARCH=["Looking for a 0-499 player","Looking for a Life Master"];
+var CLUBS=[];
+var TOURNAMENTS={};// {name:{date:[sessions]}}
+
+function isTeamSession(s){return /team|swiss/i.test(s);}
+function isProAmSession(s){return /pro.?am/i.test(s);}
+function isSpecialSession(s){return isTeamSession(s)||isProAmSession(s);}
+
+// ── App State ─────────────────────────────────────────────────────────────────
+var me=null,players=[],messages=[],tab="browse";
+var msgTarget=null,activeThread=null,showPicker=false,msgListener=null,replyTo=null;
+var browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
+var browseCalY=0,browseCalM=0;
+var _venueState={},_sessionState={},_selectedVenues=[],_calState={},_teamPrefState={},_selectedSystems=[];
+var _profileDirty=false;
+
+// ── Array/Object helpers for Firebase ────────────────────────────────────────
+function safeName(s){return s.replace(/[^a-zA-Z0-9]/g,"_");}
+
+function loadPlayers(){
+  return db.ref("players").get().then(function(snap){
+    players=snap.exists()?Object.entries(snap.val()).map(function(e){
+      var p=Object.assign({},e[1],{uid:e[0]});
+      delete p.email;
+      return p;
+    }):[];
+  });
+}
+
+function loadVenueData(){
+  return db.ref("venueData").get().then(function(snap){
+    try {
+      if(snap.exists()){
+        var d=snap.val();
+        CLUBS=d.clubs||[];
+        var tNamesRaw=d.tNames||[];
+        var tNames=Array.isArray(tNamesRaw)?tNamesRaw:Object.values(tNamesRaw);
+        TOURNAMENTS={};
+        tNames.forEach(function(name){if(name&&name!=="")TOURNAMENTS[name]={};});
+        var tData=d.tData||{};
+        Object.keys(tData).forEach(function(sn){
+          var entry=tData[sn];
+          if(!entry||typeof entry!=="object")return;
+          var tname=entry.name;
+          if(!tname||TOURNAMENTS[tname]===undefined)return;
+          var dates=entry.dates||{};
+          var cleanDates={};
+          Object.keys(dates).forEach(function(dsKey){
+            if(dsKey==="x")return;
+            var ds=dsKey.replace(/_/g,"-");
+            var sessObj=dates[dsKey]||{};
+            var sessions=[];
+            var count=sessObj.count||0;
+            for(var i=0;i<count;i++){
+              if(sessObj["s"+i])sessions.push(sessObj["s"+i]);
+            }
+            cleanDates[ds]=sessions;
+          });
+          TOURNAMENTS[tname]=cleanDates;
+        });
+      } else {
+        CLUBS=["Family Friendly","Bay State Wellesley","Puritan","Bay State Peabody","Belmont"];
+        TOURNAMENTS={};
+        return db.ref("venueData").set({clubs:CLUBS,tNames:[],tData:{}});
+      }
+    } catch(err) {
+      console.error("loadVenueData parse error:",err);
+      CLUBS=[];TOURNAMENTS={};
+    }
+  }).catch(function(err){
+    console.error("loadVenueData fetch error:",err);
+    CLUBS=[];TOURNAMENTS={};
+  });
+}
+
+function getTournPath(t){return "venueData/tData/"+safeName(t);}
+
+function saveTournamentName(t){
+  // Save name field and update tNames array
+  var names=Object.keys(TOURNAMENTS);
+  return db.ref(getTournPath(t)+"/name").set(t).then(function(){
+    return db.ref("venueData/tNames").set(names);
+  });
+}
+
+function savePlayer(p){
+  var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:["Standard American"]);
+  return db.ref("players/"+p.uid).set({
+    uid:p.uid,displayName:p.displayName,skill:p.skill||"Intermediate",
+    location:p.location||"",system:sysList[0]||"Standard American",
+    systems:sysList,
+    masterpoints:p.masterpoints||0,note:p.note||"",phone:p.phone||"",
+    contactEmail:p.contactEmail||"",venues:p.venues||{},
+    teamPrefs:p.teamPrefs||{},admin:p.admin===true
+  });
+}
+
+function sendMessage(toUid,text,rt){
+  var msg={fromUid:me.uid,fromName:me.displayName,toUid:toUid,text:text,ts:Date.now(),read:false};
+  if(rt)msg.replyTo={text:rt.text,fromName:rt.fromName};
+  return db.ref("messages").push(msg);
+}
+
+function listenMessages(){
+  if(msgListener)db.ref("messages").off("value",msgListener);
+  msgListener=function(snap){
+    if(snap.exists()){
+      var all=Object.entries(snap.val()).map(function(e){return Object.assign({id:e[0]},e[1]);});
+      messages=all.filter(function(m){return m.fromUid===me.uid||m.toUid===me.uid;}).sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+    } else {messages=[];}
+    if(tab==="messages")renderMessages();
+    renderTabBar();
+  };
+  db.ref("messages").on("value",msgListener);
+}
+
+function markRead(fromUid){
+  messages.filter(function(m){return m.fromUid===fromUid&&m.toUid===me.uid&&!m.read;})
+    .forEach(function(m){db.ref("messages/"+m.id).update({read:true});});
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────────
+function el(id){return document.getElementById(id);}
+function setHTML(id,html){var e=el(id);if(e)e.innerHTML=html;}
+function skillBadge(s){return '<span class="skill-badge skill-'+s+'">'+s+'</span>';}
+function fmtDate(ds){var d=ds.replace(/_/g,"-");var p=d.split("-");return MONTHS_SHORT[parseInt(p[1])-1]+" "+parseInt(p[2])+", "+p[0];}
+function fmtDateShort(ds){var d=ds.replace(/_/g,"-");var p=d.split("-");return MONTHS_SHORT[parseInt(p[1])-1]+" "+parseInt(p[2]);}
+
+// ── Player card ───────────────────────────────────────────────────────────────
+function playerCardHTML(p,msgBtn){
+  if(msgBtn===undefined)msgBtn=true;
+  var h='<div class="card">';
+  h+='<div class="card-name">'+p.displayName+'</div>';
+  if(p.masterpoints)h+='<div class="card-mp">&#11088; '+Number(p.masterpoints).toLocaleString()+' Masterpoints</div>';
+  h+=skillBadge(p.skill);
+  h+='<div class="card-meta">';
+  if(p.location)h+='&#128205; '+p.location+'&nbsp;&nbsp;';
+  var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+  h+='&#127183; '+sysList.join(', ');
+  h+='</div>';
+  var venues=p.venues||{};
+  Object.keys(venues).forEach(function(v){
+    var vdata=venues[v];
+    var isT=TOURNAMENTS.hasOwnProperty(v);
+    h+='<div class="venue-block">';
+    h+='<div class="venue-name">'+(isT?'&#127942; ':'&#127968; ')+v+'</div>';
+    if(isT){
+      if(vdata&&typeof vdata==="object"&&!Array.isArray(vdata)){
+        Object.keys(vdata).sort().forEach(function(ds){
+          var sess=vdata[ds]||[];
+          h+='<div class="venue-dates">&#128197; '+fmtDate(ds)+'</div>';
+          if(sess.length){
+            h+='<div class="venue-sessions">'+sess.join(" &middot; ")+'</div>';
+            sess.forEach(function(s){
+              if(isSpecialSession(s)){
+                var pref=p.teamPrefs&&p.teamPrefs[v]&&p.teamPrefs[v][ds]&&p.teamPrefs[v][ds][s];
+                if(pref)h+='<div class="venue-role">&#9658; '+pref+'</div>';
+              }
+            });
+          }
+        });
+      }
+    } else {
+      var dates=Array.isArray(vdata)?vdata:[];
+      if(dates.length)h+='<div class="venue-dates">&#128197; '+dates.slice(0,3).map(fmtDateShort).join(", ")+(dates.length>3?" +more":"")+'</div>';
+    }
+    h+='</div>';
+  });
+  if(p.note)h+='<div class="card-note">"'+p.note+'"</div>';
+  if(msgBtn)h+='<button class="btn" onclick="startMsg(\''+p.uid+'\')">&#9993; Message '+p.displayName.split(" ")[0]+'</button>';
+  if(p.contactEmail)h+='<a href="mailto:'+p.contactEmail+'" style="display:inline-block;margin-top:10px;margin-right:6px;padding:8px 16px;border-radius:4px;border:1px solid var(--gold-dim);background:var(--felt);color:var(--gold);font-size:14px;text-decoration:none;font-family:Georgia,serif">&#128231; Email '+p.displayName.split(" ")[0]+'</a>';
+
+  h+='</div>';
+  return h;
+}
+
+// ── Pills ─────────────────────────────────────────────────────────────────────
+function tPill(key,val,elem){
+  if(key==="systems"){
+    var idx=_selectedSystems.indexOf(val);
+    if(idx===-1)_selectedSystems.push(val);
+    else _selectedSystems.splice(idx,1);
+    elem.classList.toggle("on");
+    markDirty();
+    return;
+  }
+  if(key==="venues"){
+    var idx=_selectedVenues.indexOf(val);
+    if(idx===-1){
+      _selectedVenues.push(val);
+      if(TOURNAMENTS.hasOwnProperty(val)){if(!_sessionState[val])_sessionState[val]={};}
+      else{if(!_venueState[val])_venueState[val]=[];}
+    } else {
+      _selectedVenues.splice(idx,1);
+      delete _venueState[val];delete _sessionState[val];delete _teamPrefState[val];
+    }
+    elem.classList.toggle("on");
+    markDirty();
+    renderVenueCalendars();
+    return;
+  }
+}
+
+// ── Profile calendar ──────────────────────────────────────────────────────────
+function calKey(v){return "cal_"+v.replace(/[^a-zA-Z0-9]/g,"_");}
+function initCalFor(v){if(!_calState[v]){var n=new Date();_calState[v]={year:n.getFullYear(),month:n.getMonth()};}}
+
+function renderVenueCalendars(){
+  var c=el("venue-cals");if(!c)return;
+  var h="";
+  _selectedVenues.forEach(function(v){initCalFor(v);h+=renderOneVenueCal(v);});
+  if(!h)h='<div style="color:var(--tl);font-style:italic;font-size:14px;padding:8px 0">Select clubs and tournaments above to set your available dates.</div>';
+  c.innerHTML=h;
+}
+
+function renderOneVenueCal(venue){
+  var isT=TOURNAMENTS.hasOwnProperty(venue);
+  var cid=calKey(venue);
+  var parts=[];
+  parts.push('<div class="venue-cal-block" id="'+cid+'">');
+  parts.push('<div class="venue-cal-title">'+(isT?'&#127942; Tournament: ':'&#127968; Club: ')+venue+'</div>');
+  if(isT){
+    var availDates=Object.keys(TOURNAMENTS[venue]||{}).sort();
+    if(!availDates.length){
+      parts.push('<div style="font-size:13px;color:var(--tl);font-style:italic;padding:8px 0">No dates set up yet. Ask the admin to add dates.</div>');
+    } else {
+      parts.push('<div style="font-size:12px;color:var(--tl);margin-bottom:6px">Select the dates you want to play:</div>');
+      parts.push('<div class="pills">');
+      availDates.forEach(function(ds){
+        var selected=(_sessionState[venue]&&_sessionState[venue][ds]!==undefined);
+        parts.push('<span class="pill'+(selected?' on':'')+'" data-v="'+venue+'" data-d="'+ds+'" onclick="tVenueDateEl(this)">'+fmtDate(ds)+'</span>');
+      });
+      parts.push('</div>');
+      var selDates=Object.keys(_sessionState[venue]||{});
+      selDates.sort().forEach(function(ds){
+        var avail=TOURNAMENTS[venue][ds]||[];
+        if(!avail.length)return;
+        var selS=(_sessionState[venue][ds])||[];
+        parts.push('<div class="session-block"><div class="session-title">Sessions on '+fmtDate(ds)+'</div><div class="pills">');
+        avail.forEach(function(sess){
+          var on=selS.indexOf(sess)>=0;
+          parts.push('<span class="pill'+(on?' on':'')+'" data-v="'+venue+'" data-d="'+ds+'" data-s="'+sess+'" onclick="tSessionEl(this)">'+sess+'</span>');
+        });
+        parts.push('</div>');
+        selS.forEach(function(sess){
+          if(isSpecialSession(sess)){
+            var prefs=isProAmSession(sess)?PROAM_PREFS:TEAM_PREFS;
+            var curPref=(_teamPrefState[venue]&&_teamPrefState[venue][ds]&&_teamPrefState[venue][ds][sess])||'';
+            var label=isProAmSession(sess)?'Pro Am role:':'Team role:';
+            parts.push('<div style="margin-top:6px;font-size:13px;color:var(--tl)">'+sess+' — '+label+'</div>');
+            parts.push('<select class="finput" style="margin-top:4px;font-size:13px;padding:6px 10px" data-v="'+venue+'" data-d="'+ds+'" data-s="'+sess+'" onchange="setTeamPref(this)">');
+            parts.push('<option value="">Select your role...</option>');
+            prefs.forEach(function(pr){parts.push('<option value="'+pr+'"'+(curPref===pr?' selected':'')+'>'+pr+'</option>');});
+            parts.push('</select>');
+          }
+        });
+        parts.push('</div>');
+      });
+    }
+  } else {
+    var st=_calState[venue]||{year:new Date().getFullYear(),month:new Date().getMonth()};
+    var today=new Date();today.setHours(0,0,0,0);
+    var firstDay=new Date(st.year,st.month,1).getDay();
+    var dim=new Date(st.year,st.month+1,0).getDate();
+    var selDates2=_venueState[venue]||[];
+    parts.push('<div class="cal-wrap"><div class="cal-header">');
+    parts.push('<button class="cal-nav" data-v="'+venue+'" data-dir="-1" onclick="calMoveEl(this)">&#8249;</button>');
+    parts.push('<div class="cal-month-lbl">'+MONTHS[st.month]+' '+st.year+'</div>');
+    parts.push('<button class="cal-nav" data-v="'+venue+'" data-dir="1" onclick="calMoveEl(this)">&#8250;</button>');
+    parts.push('</div><div class="cal-grid">');
+    ["Su","Mo","Tu","We","Th","Fr","Sa"].forEach(function(d){parts.push('<div class="cal-day-lbl">'+d+'</div>');});
+    for(var i=0;i<firstDay;i++)parts.push('<div class="cal-day empty"></div>');
+    for(var d=1;d<=dim;d++){
+      var dobj=new Date(st.year,st.month,d);
+      var mm=st.month+1;
+      var ds2=st.year+"-"+(mm<10?"0"+mm:mm)+"-"+(d<10?"0"+d:d);
+      var isPast=dobj<today;
+      var isSel=selDates2.indexOf(ds2)>=0;
+      parts.push('<div class="cal-day'+(isPast?' past':'')+(isSel?' sel':'')+'" data-v="'+venue+'" data-d="'+ds2+'" onclick="tVenueDateEl(this)">'+d+'</div>');
+    }
+    parts.push('</div>');
+    if(selDates2.length){
+      parts.push('<div class="cal-tags">');
+      selDates2.slice().sort().forEach(function(ds2){
+        parts.push('<span class="cal-tag">'+fmtDate(ds2)+'<span class="cal-tag-x" data-v="'+venue+'" data-d="'+ds2+'" onclick="tVenueDateEl(this)">x</span></span>');
+      });
+      parts.push('</div>');
+    } else {
+      parts.push('<div class="cal-tags" style="color:var(--tl);font-style:italic">Tap dates to mark your availability</div>');
+    }
+    parts.push('</div>');
+  }
+  parts.push('</div>');
+  return parts.join('');
+}
+
+function calMoveEl(btn){
+  var v=btn.getAttribute('data-v'),dir=parseInt(btn.getAttribute('data-dir'));
+  initCalFor(v);
+  _calState[v].month+=dir;
+  if(_calState[v].month>11){_calState[v].month=0;_calState[v].year++;}
+  if(_calState[v].month<0){_calState[v].month=11;_calState[v].year--;}
+  var c=el(calKey(v));if(c)c.outerHTML=renderOneVenueCal(v);
+}
+
+function tVenueDateEl(elem){
+  var v=elem.getAttribute('data-v'),ds=elem.getAttribute('data-d');
+  var isT=TOURNAMENTS.hasOwnProperty(v);
+  if(isT){
+    if(!_sessionState[v])_sessionState[v]={};
+    if(_sessionState[v][ds]!==undefined)delete _sessionState[v][ds];
+    else _sessionState[v][ds]=[];
+  } else {
+    if(!_venueState[v])_venueState[v]=[];
+    var arr=_venueState[v],idx=arr.indexOf(ds);
+    if(idx===-1)arr.push(ds);else arr.splice(idx,1);
+  }
+  markDirty();
+  var c=el(calKey(v));if(c)c.outerHTML=renderOneVenueCal(v);
+}
+
+function tSessionEl(elem){
+  var v=elem.getAttribute('data-v'),ds=elem.getAttribute('data-d'),s=elem.getAttribute('data-s');
+  if(!_sessionState[v])_sessionState[v]={};
+  if(!_sessionState[v][ds])_sessionState[v][ds]=[];
+  var arr=_sessionState[v][ds],idx=arr.indexOf(s);
+  if(idx===-1)arr.push(s);else arr.splice(idx,1);
+  markDirty();
+  var c=el(calKey(v));if(c)c.outerHTML=renderOneVenueCal(v);
+}
+
+function setTeamPref(sel){
+  var v=sel.getAttribute('data-v'),ds=sel.getAttribute('data-d'),s=sel.getAttribute('data-s');
+  if(!_teamPrefState[v])_teamPrefState[v]={};
+  if(!_teamPrefState[v][ds])_teamPrefState[v][ds]={};
+  _teamPrefState[v][ds][s]=sel.value;
+  markDirty();
+}
+
+// ── Browse calendar ───────────────────────────────────────────────────────────
+function initBrowseCal(){if(!browseCalY){var n=new Date();browseCalY=n.getFullYear();browseCalM=n.getMonth();}}
+
+function renderBrowseCal(){
+  initBrowseCal();
+  var today=new Date();today.setHours(0,0,0,0);
+  var firstDay=new Date(browseCalY,browseCalM,1).getDay();
+  var dim=new Date(browseCalY,browseCalM+1,0).getDate();
+  var h='<div class="bcal-wrap">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+  h+='<button class="cal-nav" style="border-color:var(--gold-dim);color:var(--cream)" onclick="bCalMove(-1)">&#8249;</button>';
+  h+='<span style="font-weight:bold;font-size:14px;color:var(--gold)">'+MONTHS[browseCalM]+' '+browseCalY+'</span>';
+  h+='<button class="cal-nav" style="border-color:var(--gold-dim);color:var(--cream)" onclick="bCalMove(1)">&#8250;</button>';
+  h+='</div><div class="bcal-grid">';
+  ["Su","Mo","Tu","We","Th","Fr","Sa"].forEach(function(d){h+='<div class="bcal-lbl">'+d+'</div>';});
+  for(var i=0;i<firstDay;i++)h+='<div class="bcal-day empty"></div>';
+  for(var d=1;d<=dim;d++){
+    var dobj=new Date(browseCalY,browseCalM,d);
+    var mm=browseCalM+1;
+    var ds=browseCalY+"-"+(mm<10?"0"+mm:mm)+"-"+(d<10?"0"+d:d);
+    var isPast=dobj<today;
+    var isSel=browseFilters.date===ds;
+    h+='<div class="bcal-day'+(isPast?' past':'')+(isSel?' bsel':'')+'" onclick="setBrowseDate(\''+ds+'\')">'+d+'</div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function bCalMove(dir){
+  initBrowseCal();
+  browseCalM+=dir;
+  if(browseCalM>11){browseCalM=0;browseCalY++;}
+  if(browseCalM<0){browseCalM=11;browseCalY--;}
+  var c=el("bcal");if(c)c.innerHTML=renderBrowseCal();
+}
+
+function setBrowseDate(ds){
+  browseFilters.date=browseFilters.date===ds?"":ds;
+  browseFilters.session="";browseFilters.role="";
+  renderBrowse();
+}
+
+// ── Routing ───────────────────────────────────────────────────────────────────
+function setTabEl(btn){setTab(btn.getAttribute('data-tab'));}
+function sysPillClick(elem){
+  var s=elem.getAttribute('data-s');
+  var idx=_selectedSystems.indexOf(s);
+  if(idx===-1)_selectedSystems.push(s);
+  else _selectedSystems.splice(idx,1);
+  elem.classList.toggle('on');
+  markDirty();
+}
+
+function toggleSysPill(elem){
+  markDirty();
+  elem.classList.toggle('on');
+  var s=elem.getAttribute('data-sys');
+  var idx=_selectedSystems.indexOf(s);
+  if(idx===-1)_selectedSystems.push(s);
+  else _selectedSystems.splice(idx,1);
+}
+
+function getSelectedSystems(){
+  return _selectedSystems.length?_selectedSystems:["Standard American"];
+}
+
+function markDirty(){_profileDirty=true;}
+
+function setTab(t){
+  if(tab==="profile"&&_profileDirty&&t!=="profile"){
+    showUnsavedModal(t);
+    return;
+  }
+  doSetTab(t);
+}
+
+function doSetTab(t){
+  _profileDirty=false;
+  tab=t;renderTabBar();
+  if(t==="browse"){browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};browseCalY=0;browseCalM=0;renderBrowse();}
+  if(t==="messages")renderMessages();
+  if(t==="profile"){_profileDirty=false;renderProfile();}
+  if(t==="admin")renderAdmin();
+}
+
+var _pendingTab=null;
+
+function showUnsavedModal(nextTab){
+  _pendingTab=nextTab;
+  var modal=document.createElement('div');
+  modal.id='unsaved-modal';
+  modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+  var box=document.createElement('div');
+  box.style.cssText='background:var(--card);border-radius:10px;padding:24px;max-width:320px;width:100%;border:1px solid var(--border);text-align:center';
+  var title=document.createElement('div');
+  title.style.cssText='font-size:17px;font-weight:bold;color:var(--td);margin-bottom:8px';
+  title.textContent='Unsaved Changes';
+  var msg=document.createElement('div');
+  msg.style.cssText='font-size:14px;color:var(--tm);margin-bottom:20px';
+  msg.textContent='You have unsaved changes in your profile.';
+  var btnSave=document.createElement('button');
+  btnSave.style.cssText='width:100%;padding:11px;background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold);border-radius:4px;font-size:15px;cursor:pointer;font-family:Georgia,serif;margin-bottom:8px;display:block';
+  btnSave.textContent='Save Profile';
+  btnSave.onclick=modalSave;
+  var btnDiscard=document.createElement('button');
+  btnDiscard.style.cssText='width:100%;padding:11px;background:none;color:var(--tm);border:1px solid var(--border);border-radius:4px;font-size:15px;cursor:pointer;font-family:Georgia,serif;display:block';
+  btnDiscard.textContent='Discard Changes';
+  btnDiscard.onclick=modalDiscard;
+  box.appendChild(title);box.appendChild(msg);box.appendChild(btnSave);box.appendChild(btnDiscard);
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+}
+
+function closeUnsavedModal(){
+  var m=document.getElementById('unsaved-modal');
+  if(m)m.parentNode.removeChild(m);
+}
+
+function modalSave(){
+  closeUnsavedModal();
+  saveProfile();
+  var t=_pendingTab;_pendingTab=null;
+  doSetTab(t);
+}
+
+function modalDiscard(){
+  closeUnsavedModal();
+  var t=_pendingTab;_pendingTab=null;
+  doSetTab(t);
+}
+
+function renderTabBar(){
+  var unread=messages.filter(function(m){return m.toUid===me.uid&&!m.read;}).length;
+  var tabs=[{id:"browse",l:"Find a Partner"},{id:"messages",l:"&#9993; Msgs"+(unread>0?" ("+unread+")":"")},{id:"profile",l:"&#9824; Profile"}];
+  if(me&&(me.admin===true||me.admin==="true"))tabs.push({id:"admin",l:"&#9881; Admin"});
+  el("tabbar").innerHTML=tabs.map(function(t){return '<button class="tab'+(tab===t.id?" active":"")+'" data-tab="'+t.id+'" onclick="setTabEl(this)">'+t.l+'</button>';}).join("");
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function renderLogin(err){
+  document.body.innerHTML='<div class="login-wrap"><div class="login-box">'
+    +'<div class="login-suits"><span style="color:#1a1208">&#9824;</span><span style="color:#c0392b">&#9829;</span><span style="color:#c0392b">&#9830;</span><span style="color:#1a1208">&#9827;</span></div>'
+    +'<div class="login-title">Bridge Partnership Desk</div>'
+    +'<div class="login-sub">Find your ideal partner at the table</div>'
+    +(err?'<div class="banner err">'+err+'</div>':"")
+    +'<label class="flabel">Email address</label>'
+    +'<input class="finput" type="email" id="l-email" placeholder="you@example.com"/>'
+    +'<label class="flabel">Password</label>'
+    +'<div class="pw-wrap"><input class="finput" type="password" id="l-pw" placeholder="Your password" onkeydown="if(event.key===\'Enter\')doLogin()"/><button class="pw-toggle" onclick="tPw(\'l-pw\')">Show</button></div>'
+    +'<button class="btn-big" onclick="doLogin()">Sign In</button>'
+    +'<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--tl)"><span style="color:var(--gold-dim);cursor:pointer;text-decoration:underline" onclick="renderForgot()">Forgot password?</span></div>'
+    +'<div class="login-toggle">New here? <span onclick="renderRegister()">Create an account</span></div>'
+    +'</div></div>';
+}
+
+function renderRegister(err){
+  document.body.innerHTML='<div class="login-wrap"><div class="login-box">'
+    +'<div class="login-suits"><span style="color:#1a1208">&#9824;</span><span style="color:#c0392b">&#9829;</span><span style="color:#c0392b">&#9830;</span><span style="color:#1a1208">&#9827;</span></div>'
+    +'<div class="login-title">Create Account</div>'
+    +'<div class="login-sub">Join the Bridge Partnership Desk</div>'
+    +'<div class="privacy-note">&#128274; <strong>Privacy:</strong> Your email and password are used for login only and are never visible to other players.</div>'
+    +(err?'<div class="banner err">'+err+'</div>':"")
+    +'<label class="flabel">Full name <span class="flabel-note">(shown to other players)</span></label>'
+    +'<input class="finput" type="text" id="r-name" placeholder="e.g. Margaret Thornton"/>'
+    +'<label class="flabel">Email address <span class="flabel-note">(private)</span></label>'
+    +'<input class="finput" type="email" id="r-email" placeholder="you@example.com"/>'
+    +'<label class="flabel">Password <span class="flabel-note">(min 6 characters)</span></label>'
+    +'<div class="pw-wrap"><input class="finput" type="password" id="r-pw" placeholder="Choose a password"/><button class="pw-toggle" onclick="tPw(\'r-pw\')">Show</button></div>'
+    +'<label class="flabel">Confirm password</label>'
+    +'<div class="pw-wrap"><input class="finput" type="password" id="r-pw2" placeholder="Repeat your password" onkeydown="if(event.key===\'Enter\')doRegister()"/><button class="pw-toggle" onclick="tPw(\'r-pw2\')">Show</button></div>'
+    +'<button class="btn-big" onclick="doRegister()">Create Account</button>'
+    +'<div class="login-toggle">Already registered? <span onclick="renderLogin()">Sign In</span></div>'
+    +'</div></div>';
+}
+
+function renderForgot(err,ok){
+  document.body.innerHTML='<div class="login-wrap"><div class="login-box">'
+    +'<div class="login-suits"><span style="color:#1a1208">&#9824;</span><span style="color:#c0392b">&#9829;</span><span style="color:#c0392b">&#9830;</span><span style="color:#1a1208">&#9827;</span></div>'
+    +'<div class="login-title">Reset Password</div>'
+    +'<div class="login-sub">We\'ll send a reset link to your email</div>'
+    +(err?'<div class="banner err">'+err+'</div>':"")
+    +(ok?'<div class="banner ok">'+ok+'</div>':"")
+    +'<label class="flabel">Email address</label>'
+    +'<input class="finput" type="email" id="f-email" placeholder="you@example.com" onkeydown="if(event.key===\'Enter\')doForgot()"/>'
+    +'<button class="btn-big" onclick="doForgot()">Send Reset Link</button>'
+    +'<div class="login-toggle"><span onclick="renderLogin()">Back to Sign In</span></div>'
+    +'</div></div>';
+}
+
+function tPw(id){var i=el(id);if(!i)return;i.type=i.type==="password"?"text":"password";var b=i.nextElementSibling;if(b)b.textContent=i.type==="password"?"Show":"Hide";}
+
+function doLogin(){
+  var email=el("l-email").value.trim(),pw=el("l-pw").value;
+  if(!email||!pw){renderLogin("Please enter your email and password.");return;}
+  auth.signInWithEmailAndPassword(email,pw).then(function(cred){
+    handleUser(cred.user);
+  }).catch(function(e){
+    // Show actual error code to help diagnose
+    renderLogin("Error: "+e.code+" — "+e.message);
+  });
+}
+
+function handleUser(user){
+  document.body.innerHTML='<div class="loading"><div>Loading your profile...</div></div>';
+  loadPlayers().then(function(){
+    return loadVenueData();
+  }).then(function(){
+    var found=players.find(function(p){return p.uid===user.uid;});
+    if(found){
+      found.admin=false;
+      db.ref("players/"+user.uid+"/admin").get().then(function(snap){
+        found.admin=snap.exists()&&snap.val()===true;
+        me=found;startApp();
+      }).catch(function(){me=found;startApp();});
+    } else {renderRegister();}
+  }).catch(function(e){
+    renderLogin("Could not load profile. Please try again.");
+  });
+}
+
+function doRegister(){
+  var name=el("r-name").value.trim(),email=el("r-email").value.trim();
+  var pw=el("r-pw").value,pw2=el("r-pw2").value;
+  if(!name){renderRegister("Please enter your full name.");return;}
+  if(!email){renderRegister("Please enter your email address.");return;}
+  if(pw.length<6){renderRegister("Password must be at least 6 characters.");return;}
+  if(pw!==pw2){renderRegister("Passwords do not match.");return;}
+  auth.createUserWithEmailAndPassword(email,pw).then(function(cred){
+    me={uid:cred.user.uid,displayName:name,skill:"Intermediate",location:"",system:"Standard American",masterpoints:0,note:"",phone:"",contactEmail:"",venues:{},teamPrefs:{},admin:false};
+    return savePlayer(me);
+  }).then(function(){return loadPlayers();}).then(function(){startApp();})
+  .catch(function(e){
+    renderRegister(e.code==="auth/email-already-in-use"?"That email is already registered. Please sign in.":"Registration failed.");
+  });
+}
+
+function doForgot(){
+  var email=el("f-email").value.trim();
+  if(!email){renderForgot("Please enter your email address.");return;}
+  auth.sendPasswordResetEmail(email).then(function(){renderForgot(null,"Reset link sent! Check your email.");}).catch(function(){renderForgot("Could not send reset email.");});
+}
+
+function startApp(){
+  // Reset all filters on each login
+  browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
+  browseCalY=0;browseCalM=0;
+  document.body.innerHTML='<div class="topbar"><div class="topbar-logo">Bridge Partnership Desk</div>'
+    +'<div class="topbar-user"><span id="topbar-name">'+me.displayName+'</span>'
+    +'<button class="btn-sm" onclick="doSignOut()">Sign out</button></div></div>'
+    +'<div class="tabbar" id="tabbar"></div><div id="content"></div>';
+  listenMessages();setTab("browse");
+}
+
+function doSignOut(){
+  if(msgListener)db.ref("messages").off("value",msgListener);
+  auth.signOut();me=null;players=[];messages=[];renderLogin();
+}
+
+// ── Browse ────────────────────────────────────────────────────────────────────
+function clearDateFilter(){browseFilters.date="";browseFilters.session="";browseFilters.role="";renderBrowse();}
+function setVenueFilter(v){browseFilters.venue=v;browseFilters.session="";browseFilters.role="";renderBrowse();}
+function setSessFilter(s){browseFilters.session=s;browseFilters.role="";renderBrowse();}
+
+function clearSkillFilter(elem){
+  browseFilters.skills=[];
+  document.querySelectorAll('.skill-pill').forEach(function(p){p.classList.remove('on');});
+  elem.classList.add('on');
+  var resultsEl=document.getElementById('browse-results');
+  var others=players.filter(function(p){return p.uid!==me.uid;});
+  if(resultsEl)resultsEl.innerHTML=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
+  else renderBrowse();
+}
+
+function skillFilterEl(elem){
+  var s=elem.getAttribute('data-s');
+  var idx=browseFilters.skills.indexOf(s);
+  if(idx===-1)browseFilters.skills.push(s);else browseFilters.skills.splice(idx,1);
+  // Update "Any Skill Level" pill state
+  var anyPill=document.querySelector('.skill-pill:first-child');
+  if(anyPill)anyPill.classList.toggle('on',browseFilters.skills.length===0);
+  // Don't call renderBrowse here - update just the results
+  var skills=browseFilters.skills.slice(); // snapshot
+  elem.classList.toggle('on');
+  // Re-render only the player list, not the whole page
+  var others=players.filter(function(p){return p.uid!==me.uid;})
+    .filter(function(p){return !skills.length||skills.indexOf(p.skill)>=0;});
+  var resultsEl=document.getElementById('browse-results');
+  if(resultsEl){
+    resultsEl.innerHTML=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
+  } else {
+    renderBrowse();
+  }
+}
+
+function toggleSkillFilter(s,elem){
+  var idx=browseFilters.skills.indexOf(s);
+  if(idx===-1)browseFilters.skills.push(s);else browseFilters.skills.splice(idx,1);
+  elem.classList.toggle("on");
+  renderBrowse();
+}
+
+function renderBrowse(){
+  var others=players.filter(function(p){return p.uid!==me.uid;})
+    .filter(function(p){return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;})
+    .filter(function(p){
+      if(!browseFilters.venue)return true;
+      return p.venues&&p.venues[browseFilters.venue]!==undefined;
+    })
+    .filter(function(p){
+      if(!browseFilters.date)return true;
+      if(!p.venues)return false;
+      var vList=browseFilters.venue?[browseFilters.venue]:Object.keys(p.venues);
+      return vList.some(function(v){
+        var vd=p.venues[v];
+        if(!vd)return false;
+        if(TOURNAMENTS.hasOwnProperty(v))return vd[browseFilters.date]!==undefined;
+        return Array.isArray(vd)&&vd.indexOf(browseFilters.date)>=0;
+      });
+    })
+    .filter(function(p){
+      if(!browseFilters.session||!browseFilters.venue||!browseFilters.date)return true;
+      if(!TOURNAMENTS.hasOwnProperty(browseFilters.venue))return true;
+      if(!p.venues||!p.venues[browseFilters.venue])return false;
+      var sess=p.venues[browseFilters.venue][browseFilters.date]||[];
+      return Array.isArray(sess)&&sess.indexOf(browseFilters.session)>=0;
+    })
+    .filter(function(p){
+      if(!browseFilters.system)return true;
+      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+      return sysList.indexOf(browseFilters.system)>=0;
+    })
+    .filter(function(p){
+      if(!browseFilters.role)return true;
+      if(!p.teamPrefs)return false;
+      // Map search role to profile role
+      var searchRole=browseFilters.role;
+      var profileRole=searchRole
+        .replace("Looking for a 0-499 player","I am a 0-499 player")
+        .replace("Looking for a Life Master","I am a Life Master");
+      return Object.keys(p.teamPrefs).some(function(v){
+        return Object.keys(p.teamPrefs[v]).some(function(ds){
+          return Object.keys(p.teamPrefs[v][ds]).some(function(s){
+            return p.teamPrefs[v][ds][s]===profileRole||p.teamPrefs[v][ds][s]===searchRole;
+          });
+        });
+      });
+    });
+
+  var venueOpts='<option value="">Any Venue</option>';
+  if(CLUBS.length)venueOpts+='<optgroup label="Clubs">'+CLUBS.map(function(c){return '<option value="'+c+'"'+(browseFilters.venue===c?" selected":"")+'>'+c+'</option>';}).join("")+'</optgroup>';
+  var tn=Object.keys(TOURNAMENTS);
+  if(tn.length)venueOpts+='<optgroup label="Tournaments">'+tn.map(function(t){return '<option value="'+t+'"'+(browseFilters.venue===t?" selected":"")+'>'+t+'</option>';}).join("")+'</optgroup>';
+
+  var h='<div class="page"><div class="page-title">Find a Partner</div><div class="page-sub">Find bridge partners seeking a game</div>';
+  h+='<div style="margin-bottom:6px;font-size:12px;color:var(--cream);opacity:0.6">Filter by skill level:</div>';
+  h+='<div class="skill-pills">';
+  h+='<span class="skill-pill'+(browseFilters.skills.length===0?' on':'')+'" onclick="clearSkillFilter(this)">Any Skill Level</span>';
+  SKILL_LEVELS.forEach(function(s){var on=browseFilters.skills.indexOf(s)>=0;h+='<span class="skill-pill'+(on?' on':'')+'" data-s="'+s+'" onclick="skillFilterEl(this)">'+s+'</span>';});
+  h+='</div>';
+  h+='<div style="margin-top:10px;margin-bottom:6px;font-size:12px;color:var(--cream);opacity:0.6">Filter by date'+(browseFilters.date?' <span style="color:var(--gold);font-size:13px">— '+fmtDate(browseFilters.date)+'</span> <span style="color:var(--red);cursor:pointer;font-size:13px" onclick="clearDateFilter()">Clear</span>':"")+':</div>';
+  h+='<div id="bcal">'+renderBrowseCal()+'</div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;margin-top:8px">';
+  h+='<div style="font-size:12px;color:var(--cream);opacity:0.6;margin-bottom:6px">Clubs and Tournaments:</div>';
+  h+='<select class="fsel" onchange="setVenueFilter(this.value)">'+venueOpts+'</select>';
+  var sysOpts='<option value="">Any System</option>'+SYSTEMS.filter(function(s){return s!=="Any";}).map(function(s){return '<option value="'+s+'"'+(browseFilters.system===s?" selected":"")+'>'+s+'</option>';}).join("");
+  h+='</div><div style="margin-bottom:10px"><div style="font-size:12px;color:var(--cream);opacity:0.6;margin-bottom:6px">Bidding System:</div><select class="fsel" onchange="browseFilters.system=this.value;renderBrowse()">'+sysOpts+'</select>';
+  if(browseFilters.venue&&browseFilters.date&&TOURNAMENTS.hasOwnProperty(browseFilters.venue)){
+    var availSess=TOURNAMENTS[browseFilters.venue][browseFilters.date]||[];
+    if(Array.isArray(availSess)&&availSess.length){
+      var sessOpts='<option value="">Any Session</option>'+availSess.map(function(s){return '<option value="'+s+'"'+(browseFilters.session===s?" selected":"")+'>'+s+'</option>';}).join("");
+  h+='<select class="fsel" onchange="setSessFilter(this.value)">'+sessOpts+'</select>';
+    }
+    if(browseFilters.session&&isSpecialSession(browseFilters.session)){
+      var roleList=isProAmSession(browseFilters.session)?PROAM_SEARCH:TEAM_PREFS;
+      var roleOpts='<option value="">Any Role</option>'+roleList.map(function(r){return '<option value="'+r+'"'+(browseFilters.role===r?" selected":"")+'>'+r+'</option>';}).join("");
+  h+='<select class="fsel" onchange="browseFilters.role=this.value;renderBrowse()">'+roleOpts+'</select>';
+    }
+  }
+  h+='<span style="color:var(--gold);font-size:13px;font-style:italic">'+others.length+' found</span>';
+  h+='</div>';
+  var hasFilter=browseFilters.skills.length||browseFilters.venue||browseFilters.date||browseFilters.system||browseFilters.role;
+  h+='<div id="browse-results">';
+  if(!hasFilter){
+    h+='<div class="empty" style="opacity:0.5">Use the filters above to find a partner.</div>';
+  } else {
+    h+=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
+  }
+  h+='</div></div>';
+  setHTML("content",h);
+}
+
+function startMsg(uid){msgTarget=uid;setTab("messages");}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+function renderMessages(){
+  if(msgTarget){activeThread=msgTarget;msgTarget=null;markRead(activeThread);}
+  var threads={};
+  messages.forEach(function(m){var o=m.fromUid===me.uid?m.toUid:m.fromUid;if(!threads[o])threads[o]=[];threads[o].push(m);});
+  var tList=Object.entries(threads).map(function(e){
+    var uid=e[0],msgs=e[1];
+    return {uid:uid,player:players.find(function(p){return p.uid===uid;})||{displayName:"Unknown",skill:""},last:msgs[msgs.length-1],unread:msgs.filter(function(m){return m.toUid===me.uid&&!m.read;}).length};
+  }).sort(function(a,b){return (b.last.ts||0)-(a.last.ts||0);});
+  var convo=activeThread?(threads[activeThread]||[]):[];
+  var ap=activeThread?players.find(function(p){return p.uid===activeThread;}):null;
+  var others=players.filter(function(p){return p.uid!==me.uid;});
+  var h='<div class="page">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Messages</div><button class="btn" style="margin-top:0" onclick="tPicker()">&#9993; New</button></div>';
+  h+='<div class="page-sub">Conversations with potential partners</div>';
+  if(showPicker){
+    h+='<div class="picker"><div class="picker-hdr">Select a player to message</div>';
+    others.forEach(function(p){h+='<div class="picker-item" onclick="pickThread(\''+p.uid+'\')"><span style="font-weight:bold;color:var(--td)">'+p.displayName+'</span><span style="font-size:12px;color:var(--tl)">'+p.skill+'</span></div>';});
+    h+='</div>';
+  }
+  h+='<div class="thread-list">';
+  if(!tList.length)h+='<div style="padding:16px 14px;color:var(--cream);opacity:0.35;font-size:13px;font-style:italic">No conversations yet.</div>';
+  else tList.forEach(function(t){h+='<div class="thread-item'+(activeThread===t.uid?" active":"")+(t.unread>0?" thread-unread":"")+'" onclick="pickThread(\''+t.uid+'\')">'+'<div class="thread-name">'+t.player.displayName+'</div>'+'<div class="thread-preview">'+(t.last.text||"")+'</div></div>';});
+  h+='</div>';
+  if(!activeThread){
+    h+='<div style="text-align:center;color:var(--cream);opacity:0.3;font-style:italic;padding:16px 0">Select a conversation or tap New</div>';
+  } else {
+    h+='<div class="chat-box"><div class="chat-hdr">&#9827; '+(ap?ap.displayName:activeThread)+(ap?' <span style="font-weight:normal;font-size:12px;color:var(--tl)">&middot; '+ap.skill+'</span>':"")+'</div>';
+    h+='<div class="chat-msgs" id="chat-msgs">';
+    if(!convo.length)h+='<div style="text-align:center;color:var(--tl);font-style:italic;margin-top:16px;font-size:14px">No messages yet.</div>';
+    else convo.forEach(function(m){
+      var mine=m.fromUid===me.uid;
+      h+='<div class="msg-row'+(mine?" mine":" theirs")+'">';
+      if(m.replyTo)h+='<div style="font-size:11px;color:var(--tl);background:rgba(0,0,0,0.06);padding:3px 8px;border-radius:4px;margin-bottom:2px;max-width:76%;border-left:2px solid var(--gold-dim)">&#8617; '+m.replyTo.fromName+': '+m.replyTo.text.substring(0,50)+(m.replyTo.text.length>50?"...":"")+'</div>';
+      h+='<div class="bubble">'+m.text+'</div>';
+      h+='<div class="msg-actions" onclick="setReply(\''+m.id+'\')">&#8617; Reply</div>';
+      h+='</div>';
+    });
+    h+='</div>';
+    h+='<div class="chat-foot"><div id="reply-banner"></div><div class="chat-foot-row"><input class="chat-input" id="chat-inp" placeholder="Type a message..." onkeydown="if(event.key===\'Enter\')doSend()"/><button class="btn" style="margin-top:0;border-radius:20px" onclick="doSend()">Send</button></div></div></div>';
+  }
+  h+='</div>';
+  setHTML("content",h);
+  setTimeout(function(){var c=el("chat-msgs");if(c)c.scrollTop=c.scrollHeight;},50);
+  if(replyTo)updateReplyBanner();
+}
+
+function setReply(id){replyTo=messages.find(function(m){return m.id===id;})||null;updateReplyBanner();}
+function updateReplyBanner(){var b=el("reply-banner");if(!b)return;b.innerHTML=replyTo?'<div class="reply-banner">&#8617; Replying to: "'+replyTo.text.substring(0,50)+(replyTo.text.length>50?"...":"")+'"<span style="cursor:pointer;font-weight:bold;color:var(--red)" onclick="cancelReply()">&#215;</span></div>':"";}
+function cancelReply(){replyTo=null;updateReplyBanner();}
+function tPicker(){showPicker=!showPicker;renderMessages();}
+function pickThread(uid){activeThread=uid;showPicker=false;replyTo=null;markRead(uid);renderMessages();}
+function doSend(){var inp=el("chat-inp"),text=inp?inp.value.trim():"";if(!text||!activeThread)return;inp.value="";var rt=replyTo;replyTo=null;updateReplyBanner();sendMessage(activeThread,text,rt);}
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+function renderProfile(){
+  var ev=me.venues||{};
+  var valid=CLUBS.concat(Object.keys(TOURNAMENTS));
+  _selectedVenues=Object.keys(ev).filter(function(v){return valid.indexOf(v)>=0;});
+  _venueState={};_sessionState={};_calState={};_teamPrefState={};
+  _selectedVenues.forEach(function(v){
+    var isT=TOURNAMENTS.hasOwnProperty(v);
+    if(isT)_sessionState[v]=ev[v]||{};
+    else _venueState[v]=ev[v]||[];
+  });
+  _selectedSystems=me.systems&&me.systems.length?me.systems.slice():(me.system?[me.system]:[]);
+  var existingPrefs=me.teamPrefs||{};
+  Object.keys(existingPrefs).forEach(function(v){_teamPrefState[v]=existingPrefs[v];});
+
+  var h='<div class="page"><div class="page-title">My Profile</div><div class="page-sub">Keep your listing current</div>';
+  h+='<div id="prof-banner"></div>';
+  h+='<button class="btn-big" onclick="saveProfile()" style="margin-bottom:16px">Save Profile</button>';
+  h+='<div class="form-box">';
+  h+='<label class="flabel">Full name <span class="flabel-note">(shown to other players)</span></label>';
+  h+='<input class="finput" id="p-name" value="'+(me.displayName||"")+'" placeholder="Your full name" oninput="markDirty()"/>';
+  h+='<label class="flabel">Skill Level</label>';
+  h+='<select class="finput" id="p-skill" onchange="markDirty()">'+SKILL_LEVELS.map(function(s){return '<option'+(me.skill===s?" selected":"")+'>'+s+'</option>';}).join("")+'</select>';
+  h+='<label class="flabel">Location</label>';
+  h+='<input class="finput" id="p-location" value="'+(me.location||"")+'" placeholder="City, State" oninput="markDirty()"/>';
+  h+='<label class="flabel">Bidding Systems <span class="flabel-note">(select all you play)</span></label>';
+  h+='<div class="pills">';
+  SYSTEMS.filter(function(s){return s!=="Any";}).forEach(function(s){
+    var son=_selectedSystems.indexOf(s)>=0;
+    h+='<span class="pill'+(son?' on':'')+'" data-s="'+s+'" onclick="sysPillClick(this)">'+s+'</span>';
+  });
+  h+='</div>';
+
+
+
+
+  h+='<label class="flabel">Masterpoints</label>';
+  h+='<input class="finput" type="number" id="p-mp" value="'+(me.masterpoints||0)+'" min="0" oninput="markDirty()"/>';
+  h+='<label class="flabel">Phone <span class="flabel-note">(optional)</span></label>';
+  h+='<input class="finput" id="p-phone" value="'+(me.phone||"")+'" placeholder="555-000-0000" oninput="markDirty()"/>';
+  h+='<label class="flabel">Contact Email <span class="flabel-note">(optional — lets others email you directly)</span></label>';
+  h+='<input class="finput" type="email" id="p-cemail" value="'+(me.contactEmail||"")+'" placeholder="your@email.com" oninput="markDirty()"/>';
+  h+='<label class="flabel" style="margin-top:16px">Clubs and Tournaments</label>';
+  h+='<div style="font-size:12px;color:var(--tl);margin-bottom:6px">Select where you play, then pick your available dates.</div>';
+  if(CLUBS.length){h+='<div style="font-size:12px;font-weight:bold;color:var(--tl);margin-bottom:4px">CLUBS</div><div class="pills">';CLUBS.forEach(function(c){h+='<span class="pill'+(_selectedVenues.indexOf(c)>=0?" on":"")+'" onclick="tPill(\'venues\',\''+c+'\',this)">'+c+'</span>';});h+='</div>';}
+  var tn=Object.keys(TOURNAMENTS);
+  if(tn.length){h+='<div style="font-size:12px;font-weight:bold;color:var(--tl);margin-top:8px;margin-bottom:4px">TOURNAMENTS</div><div class="pills">';tn.forEach(function(t){h+='<span class="pill'+(_selectedVenues.indexOf(t)>=0?" on":"")+'" onclick="tPill(\'venues\',\''+t+'\',this)">'+t+'</span>';});h+='</div>';}
+  h+='<div id="venue-cals" style="margin-top:12px"></div>';
+  h+='<label class="flabel">Note to Partners</label>';
+  h+='<textarea class="finput" id="p-note" oninput="markDirty()" placeholder="Experience, conventions, what you\'re looking for...">'+(me.note||"")+'</textarea>';
+  h+='<button class="btn-big" onclick="saveProfile()">Save Profile</button>';
+  h+='<div class="sec-div"><div class="sec-lbl">Change Password</div>';
+  h+='<label class="flabel">New password</label><div class="pw-wrap"><input class="finput" type="password" id="p-newpw" placeholder="New password"/><button class="pw-toggle" onclick="tPw(\'p-newpw\')">Show</button></div>';
+  h+='<label class="flabel">Confirm new password</label><div class="pw-wrap"><input class="finput" type="password" id="p-newpw2" placeholder="Repeat new password"/><button class="pw-toggle" onclick="tPw(\'p-newpw2\')">Show</button></div>';
+  h+='<button class="btn" style="margin-top:8px" onclick="changePw()">Update Password</button><div id="pw-banner"></div></div>';
+  h+='</div></div>';
+  setHTML("content",h);
+  renderVenueCalendars();
+}
+
+function saveProfile(){
+  var venues={};
+  _selectedVenues.forEach(function(v){
+    venues[v]=TOURNAMENTS.hasOwnProperty(v)?(_sessionState[v]||{}):(_venueState[v]||[]);
+  });
+  me=Object.assign({},me,{
+    displayName:el("p-name").value.trim()||me.displayName,
+    skill:el("p-skill").value,location:el("p-location").value.trim(),
+    systems:getSelectedSystems(),system:getSelectedSystems()[0]||"Standard American",phone:el("p-phone").value.trim(),
+    masterpoints:parseInt(el("p-mp").value)||0,
+    contactEmail:el("p-cemail")?el("p-cemail").value.trim():"",
+    note:el("p-note").value.trim(),venues:venues,teamPrefs:_teamPrefState
+  });
+  savePlayer(me).then(function(){return loadPlayers();}).then(function(){
+    _profileDirty=false;
+    setHTML("prof-banner",'<div class="banner ok">Profile saved!</div>');
+    setTimeout(function(){setHTML("prof-banner","");},3000);
+    var u=el("topbar-name");if(u)u.textContent=me.displayName;
+  });
+}
+
+function changePw(){
+  var pw=el("p-newpw").value,pw2=el("p-newpw2").value;
+  if(pw.length<6){setHTML("pw-banner",'<div class="banner err">Password must be at least 6 characters.</div>');return;}
+  if(pw!==pw2){setHTML("pw-banner",'<div class="banner err">Passwords do not match.</div>');return;}
+  var user=auth.currentUser;
+  if(!user){setHTML("pw-banner",'<div class="banner err">Please sign out and back in first.</div>');return;}
+  user.updatePassword(pw).then(function(){
+    setHTML("pw-banner",'<div class="banner ok">Password updated!</div>');
+    el("p-newpw").value="";el("p-newpw2").value="";
+    setTimeout(function(){setHTML("pw-banner","");},3000);
+  }).catch(function(){setHTML("pw-banner",'<div class="banner err">Please sign out and back in first.</div>');});
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+function renderAdmin(){
+  if(!me||(me.admin!==true&&me.admin!=="true")){setHTML("content",'<div class="page"><div class="empty">Access denied.</div></div>');return;}
+  var h='<div class="page"><div class="page-title">Admin Panel</div><div class="page-sub">Manage clubs, tournaments and users</div>';
+  h+='<div class="admin-section"><h3>Clubs</h3>';
+  if(CLUBS.length)CLUBS.forEach(function(c,i){h+='<div class="admin-row"><span>'+c+'</span><button class="btn btn-red" style="margin-top:0;padding:4px 10px;font-size:12px" onclick="adminDeleteClub('+i+')">Delete</button></div>';});
+  else h+='<div style="color:var(--tl);font-style:italic;font-size:14px;padding:8px 0">No clubs yet.</div>';
+  h+='<div class="admin-add-row"><input class="admin-input" id="new-club" placeholder="New club name"/><button class="btn btn-gold" style="margin-top:0" onclick="adminAddClub()">Add Club</button></div></div>';
+
+  h+='<div class="admin-section"><h3>Tournaments</h3>';
+  var tn=Object.keys(TOURNAMENTS);
+  if(tn.length){
+    tn.forEach(function(t){
+      var tE=encodeURIComponent(t);
+      var td=TOURNAMENTS[t]||{};
+      h+='<div class="tourn-card">';
+      h+='<div class="tourn-card-title"><span>'+t+'</span><button class="btn btn-red" style="margin-top:0;padding:4px 10px;font-size:12px" data-t="'+t+'" onclick="adminDeleteTournEl(this)">Delete</button></div>';
+            var dkeys=Object.keys(td).filter(function(k){return k.length===10&&(k[4]==='-'||k[4]==='_')&&(k[7]==='-'||k[7]==='_');}).sort();
+      if(dkeys.length){
+        dkeys.forEach(function(ds){
+          var sess=td[ds]||[];
+          h+='<div style="padding:8px;margin-bottom:6px;background:#f8f4ec;border-radius:4px;border:1px solid var(--cream-dark)">';
+          h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><strong style="color:#1a1208">'+fmtDate(ds)+'</strong>';
+          h+='<button class="btn btn-red" style="margin-top:0;padding:3px 8px;font-size:11px" data-t="'+t+'" data-d="'+ds+'" onclick="adminDelDateEl(this)">Remove</button></div>';
+          if(sess.length){
+            h+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">';
+            sess.forEach(function(s,si){
+              h+='<span style="display:inline-flex;align-items:center;gap:3px;background:#ece8dc;padding:2px 8px;border-radius:3px;font-size:12px;color:#1a1208">'+s;
+              h+='<span style="cursor:pointer;color:var(--red);font-weight:bold;margin-left:3px" data-t="'+t+'" data-d="'+ds+'" data-si="'+si+'" onclick="adminDelSessEl(this)">&#215;</span></span>';
+            });
+            h+='</div>';
+          } else {
+            h+='<div style="font-size:12px;color:#8a7a5a;font-style:italic;margin-bottom:4px">No sessions yet.</div>';
+          }
+          h+='<div style="display:flex;gap:6px">';
+          h+='<input class="admin-input" style="font-size:12px;padding:4px 8px" data-t="'+t+'" data-d="'+ds+'" placeholder="Add session e.g. Morning Pairs" id="sinp_'+t+'_'+ds+'"/>';
+          h+='<button class="btn btn-gold" style="margin-top:0;padding:4px 10px;font-size:12px" data-t="'+t+'" data-d="'+ds+'" onclick="adminAddSessEl(this)">Add</button>';
+          h+='</div></div>';
+        });
+      } else {
+        h+='<div style="font-size:13px;color:var(--tl);font-style:italic;margin-bottom:8px">No dates yet.</div>';
+      }
+      h+='<div style="display:flex;gap:6px;align-items:center;margin-top:8px">';
+      h+='<input type="date" class="admin-input" id="ndateinp" style="font-size:13px;padding:5px 8px"/>';
+      h+='<button class="btn btn-gold" style="margin-top:0;padding:5px 10px;font-size:13px" data-tname="'+t+'" onclick="adminAddTournDateDirect(this.getAttribute(\'data-tname\'))">Add Date</button>';
+      h+='</div></div>';
+    });
+  } else {
+    h+='<div style="color:var(--tl);font-style:italic;font-size:14px;padding:8px 0">No tournaments yet.</div>';
+  }
+  h+='<div class="admin-add-row"><input class="admin-input" id="new-tourn" placeholder="New tournament name"/><button class="btn btn-gold" style="margin-top:0" onclick="addTournament()">Add Tournament</button></div></div>';
+
+  h+='<div class="admin-section"><h3>Users ('+players.length+')</h3>';
+  players.forEach(function(p){
+    h+='<div class="admin-row"><span>'+p.displayName+' <span style="font-size:12px;color:var(--tl)">&middot; '+p.skill+(p.masterpoints?' &middot; &#11088;'+p.masterpoints:'')+(p.admin?' &middot; ADMIN':'')+'</span></span>';
+    h+='<div style="display:flex;gap:6px">';
+    if(!p.admin||p.admin==="false")h+='<button class="btn btn-gold" style="margin-top:0;padding:4px 10px;font-size:12px" onclick="adminMakeAdmin(\''+p.uid+'\')">Make Admin</button>';
+    if(p.uid!==me.uid)h+='<button class="btn btn-red" style="margin-top:0;padding:4px 10px;font-size:12px" onclick="adminDeleteUser(\''+p.uid+'\')">Delete</button>';
+    h+='</div></div>';
+  });
+  h+='</div></div>';
+  setHTML("content",h);
+  setHTML("content",h);
+}
+
+function adminDeleteTournEl(btn){
+  var t=btn.getAttribute('data-t');
+  if(!confirm("Delete: "+t+"?"))return;
+  delete TOURNAMENTS[t];
+  db.ref("venueData/tData/"+safeName(t)).remove().then(function(){
+    return saveAllTournNames();
+  }).then(function(){return loadVenueData();}).then(function(){renderAdmin();});
+}
+
+function adminDelDateEl(btn){
+  var t=btn.getAttribute('data-t'),ds=btn.getAttribute('data-d');
+  if(!confirm("Remove "+fmtDate(ds)+"?"))return;
+  delete TOURNAMENTS[t][ds];
+  saveTournToDb(t).then(function(){return loadVenueData();}).then(function(){renderAdmin();});
+}
+
+function adminDelSessEl(btn){
+  var t=btn.getAttribute('data-t'),ds=btn.getAttribute('data-d'),si=parseInt(btn.getAttribute('data-si'));
+  if(!confirm("Delete session?"))return;
+  TOURNAMENTS[t][ds].splice(si,1);
+  saveTournToDb(t).then(function(){return loadVenueData();}).then(function(){renderAdmin();});
+}
+
+function adminAddSessEl(btn){
+  var t=btn.getAttribute('data-t'),ds=btn.getAttribute('data-d');
+  var inp=document.getElementById("sinp_"+t+"_"+ds);
+  if(!inp)return;
+  var s=inp.value.trim();if(!s)return;
+  if(!TOURNAMENTS[t][ds])TOURNAMENTS[t][ds]=[];
+  if(TOURNAMENTS[t][ds].indexOf(s)>=0){alert("Already exists.");return;}
+  TOURNAMENTS[t][ds].push(s);
+  saveTournToDb(t).then(function(){return loadVenueData();}).then(function(){renderAdmin();}).catch(function(e){alert("Error: "+e.message);});
+}
+
+function adminAddClub(){var n=el("new-club").value.trim();if(!n)return;if(CLUBS.indexOf(n)>=0){alert("Already exists.");return;}CLUBS.push(n);db.ref("venueData/clubs").set(CLUBS).then(function(){return loadVenueData();}).then(function(){renderAdmin();});}
+function adminDeleteClub(i){if(!confirm("Delete: "+CLUBS[i]+"?"))return;CLUBS.splice(i,1);db.ref("venueData/clubs").set(CLUBS).then(function(){return loadVenueData();}).then(function(){renderAdmin();});}
+
+function saveTournToDb(t){
+  var sn=safeName(t);
+  var dates=TOURNAMENTS[t]||{};
+  var datesObj={};
+  Object.keys(dates).forEach(function(ds){
+    var sessions=dates[ds]||[];
+    var sessObj={count:sessions.length};
+    sessions.forEach(function(s,i){sessObj["s"+i]=s;});
+    datesObj[ds.replace(/-/g,"_")]=sessObj;
+  });
+  var data={name:t,dates:Object.keys(datesObj).length?datesObj:{x:"x"}};
+  return db.ref("venueData/tData/"+sn).set(data);
+}
+
+function saveAllTournNames(){
+  var names=Object.keys(TOURNAMENTS).map(function(n){return n.trim();}).filter(function(n){return n;});
+  return db.ref("venueData/tNames").set(names.length?names:[""]);
+}
+
+function addTournament(){
+  var n=el("new-tourn").value.trim();
+  if(!n){alert("Please enter a tournament name.");return;}
+  if(TOURNAMENTS[n]){alert("Already exists.");return;}
+  TOURNAMENTS[n]={};
+  saveTournToDb(n).then(function(){
+    return saveAllTournNames();
+  }).then(function(){return loadVenueData();}).then(function(){
+    el("new-tourn").value="";renderAdmin();
+  }).catch(function(e){alert("Error adding tournament: "+e.message);});
+}
+
+function adminDeleteTourn(tE){
+  var t=decodeURIComponent(tE);
+  if(!confirm("Delete: "+t+"?"))return;
+  delete TOURNAMENTS[t];
+  db.ref("venueData/tData/"+safeName(t)).remove().then(function(){
+    return saveAllTournNames();
+  }).then(function(){return loadVenueData();}).then(function(){renderAdmin();});
+}
+
+function adminAddTournDateDirect(t){
+  var inp=document.getElementById("ndateinp");
+  var ds=inp?inp.value:"";
+  if(!ds){alert("Please pick a date first.");return;}
+  if(!TOURNAMENTS[t])TOURNAMENTS[t]={};
+  if(TOURNAMENTS[t][ds]!==undefined){alert("Date already added.");return;}
+  TOURNAMENTS[t][ds]=[];
+  saveTournToDb(t).then(function(){return loadVenueData();}).then(function(){
+    renderAdmin();
+  }).catch(function(e){alert("Error: "+e.message);});
+}
+
+function adminAddTournDateEl(btn){
+  var t=btn.getAttribute('data-t');
+  var inp=document.getElementById("newdate_"+t);
+  var ds=inp?inp.value:"";
+  if(!ds){alert("Please pick a date.");return;}
+  if(!TOURNAMENTS[t])TOURNAMENTS[t]={};
+  if(TOURNAMENTS[t][ds]!==undefined){alert("Date already added.");return;}
+  TOURNAMENTS[t][ds]=[];
+  saveTournToDb(t).then(function(){
+    return loadVenueData();
+  }).then(function(){renderAdmin();}).catch(function(e){alert("Error: "+e.message);});
+}
+
+function adminAddTournDate(tE){
+  var t=decodeURIComponent(tE);
+  var ds=el("newdate_"+tE).value;
+  if(!ds){alert("Please pick a date.");return;}
+  if(!TOURNAMENTS[t])TOURNAMENTS[t]={};
+  if(TOURNAMENTS[t][ds]!==undefined){alert("Date already added.");return;}
+  TOURNAMENTS[t][ds]=[];
+  saveTournToDb(t).then(function(){
+    return loadVenueData();
+  }).then(function(){renderAdmin();}).catch(function(e){alert("Error: "+e.message);});
+}
+
+function adminDeleteTournDate(tE,ds){
+  var t=decodeURIComponent(tE);
+  if(!confirm("Remove "+fmtDate(ds)+"?"))return;
+  delete TOURNAMENTS[t][ds];
+  saveTournToDb(t).then(function(){return loadVenueData();}).then(function(){renderAdmin();});
+}
+
+function adminAddTournSession(tE,ds){
+  var t=decodeURIComponent(tE);
+  var inp=el("sess_"+tE+"_"+ds);if(!inp)return;
+  var s=inp.value.trim();if(!s)return;
+  if(!TOURNAMENTS[t][ds])TOURNAMENTS[t][ds]=[];
+  if(TOURNAMENTS[t][ds].indexOf(s)>=0){alert("Session already exists.");return;}
+  TOURNAMENTS[t][ds].push(s);
+  saveTournToDb(t).then(function(){return loadVenueData();}).then(function(){renderAdmin();}).catch(function(e){alert("Error: "+e.message);});
+}
+
+function adminDeleteTournSession(tE,ds,si){
+  var t=decodeURIComponent(tE);
+  if(!confirm("Delete session?"))return;
+  TOURNAMENTS[t][ds].splice(si,1);
+  saveTournToDb(t).then(function(){return loadVenueData();}).then(function(){renderAdmin();});
+}
+
+function adminMakeAdmin(uid){if(!confirm("Make this user an admin?"))return;db.ref("players/"+uid+"/admin").set(true).then(function(){return loadPlayers();}).then(function(){renderAdmin();});}
+function adminDeleteUser(uid){var p=players.find(function(x){return x.uid===uid;});if(!confirm("Delete "+(p?p.displayName:uid)+"?"))return;db.ref("players/"+uid).remove().then(function(){return loadPlayers();}).then(function(){renderAdmin();});}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+window.onload=function(){
+  document.body.innerHTML='<div class="loading"><div id="load-msg">Loading...</div></div>';
+  // Timeout - if still loading after 10 seconds, show error
+  setTimeout(function(){
+    var msg=document.getElementById("load-msg");
+    if(msg){msg.innerHTML="Still loading...";var btn=document.createElement("button");btn.textContent="Refresh";btn.onclick=function(){location.reload();};btn.style.cssText="margin-top:16px;padding:8px 20px;background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold);border-radius:4px;cursor:pointer;font-family:Georgia,serif;display:block";msg.appendChild(btn);}
+  },10000);
+  auth.onAuthStateChanged(function(user){
+    if(user){
+      // Only handle if not already logged in
+      if(!me){handleUser(user);}
+    } else if(false){ // placeholder to keep catch block
+      loadPlayers().catch(function(e){
+        document.body.innerHTML='<div class="loading"><div>Could not load: '+e.message+'<br><br><button onclick="location.reload()" style="padding:8px 20px;background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold);border-radius:4px;cursor:pointer;font-family:Georgia,serif">Try Again</button></div></div>';
+      });
+    } else {renderLogin();}
+  });
+};
+</script>
+</body>
+</html>
