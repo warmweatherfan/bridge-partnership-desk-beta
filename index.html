@@ -237,7 +237,8 @@ function savePlayer(p){
     systems:sysList,
     masterpoints:p.masterpoints||0,note:p.note||"",phone:p.phone||"",
     contactEmail:p.contactEmail||"",venues:p.venues||{},
-    teamPrefs:p.teamPrefs||{},admin:p.admin===true
+    teamPrefs:p.teamPrefs||{},admin:p.admin===true,
+    visibleTo:p.visibleTo||null
   });
 }
 
@@ -751,7 +752,14 @@ function clearSkillFilter(elem){
   document.querySelectorAll('.skill-pill').forEach(function(p){p.classList.remove('on');});
   elem.classList.add('on');
   var resultsEl=document.getElementById('browse-results');
-  var others=players.filter(function(p){return p.uid!==me.uid;});
+  // Filter out players who have restricted visibility and don't include me
+  var others_all=players.filter(function(p){return p.uid!==me.uid;});
+  var others=others_all
+    .filter(function(p){
+      if(!p.visibleTo)return true; // visible to everyone
+      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
+      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+    });
   if(resultsEl)resultsEl.innerHTML=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
   else renderBrowse();
 }
@@ -767,7 +775,14 @@ function skillFilterEl(elem){
   var skills=browseFilters.skills.slice(); // snapshot
   elem.classList.toggle('on');
   // Re-render only the player list, not the whole page
-  var others=players.filter(function(p){return p.uid!==me.uid;})
+  // Filter out players who have restricted visibility and don't include me
+  var others_all=players.filter(function(p){return p.uid!==me.uid;});
+  var others=others_all
+    .filter(function(p){
+      if(!p.visibleTo)return true; // visible to everyone
+      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
+      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+    })
     .filter(function(p){return !skills.length||skills.indexOf(p.skill)>=0;});
   var resultsEl=document.getElementById('browse-results');
   if(resultsEl){
@@ -785,7 +800,14 @@ function toggleSkillFilter(s,elem){
 }
 
 function renderBrowse(){
-  var others=players.filter(function(p){return p.uid!==me.uid;})
+  // Filter out players who have restricted visibility and don't include me
+  var others_all=players.filter(function(p){return p.uid!==me.uid;});
+  var others=others_all
+    .filter(function(p){
+      if(!p.visibleTo)return true; // visible to everyone
+      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
+      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+    })
     .filter(function(p){return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;})
     .filter(function(p){
       if(!browseFilters.venue)return true;
@@ -879,6 +901,13 @@ function startMsg(uid){msgTarget=uid;setTab("messages");}
 // ── Messages ──────────────────────────────────────────────────────────────────
 function renderMessages(){
   if(msgTarget){activeThread=msgTarget;msgTarget=null;markRead(activeThread);}
+  // Only allow messaging players who have me in their visibleTo (or have no restriction)
+  function canMessagePlayer(uid){
+    var p=players.find(function(x){return x.uid===uid;});
+    if(!p||!p.visibleTo)return true;
+    if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
+    return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+  }
   var threads={};
   messages.forEach(function(m){var o=m.fromUid===me.uid?m.toUid:m.fromUid;if(!threads[o])threads[o]=[];threads[o].push(m);});
   var tList=Object.entries(threads).map(function(e){
@@ -887,7 +916,14 @@ function renderMessages(){
   }).sort(function(a,b){return (b.last.ts||0)-(a.last.ts||0);});
   var convo=activeThread?(threads[activeThread]||[]):[];
   var ap=activeThread?players.find(function(p){return p.uid===activeThread;}):null;
-  var others=players.filter(function(p){return p.uid!==me.uid;});
+  // Filter out players who have restricted visibility and don't include me
+  var others_all=players.filter(function(p){return p.uid!==me.uid;});
+  var others=others_all
+    .filter(function(p){
+      if(!p.visibleTo)return true; // visible to everyone
+      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
+      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+    });
   var h='<div class="page">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="page-title">Messages</div><button class="btn" style="margin-top:0" onclick="tPicker()">&#9993; New</button></div>';
   h+='<div class="page-sub">Conversations with potential partners</div>';
@@ -978,6 +1014,14 @@ function renderProfile(){
   var tn=Object.keys(TOURNAMENTS);
   if(tn.length){h+='<div style="font-size:12px;font-weight:bold;color:var(--tl);margin-top:8px;margin-bottom:4px">TOURNAMENTS</div><div class="pills">';tn.forEach(function(t){h+='<span class="pill'+(_selectedVenues.indexOf(t)>=0?" on":"")+'" onclick="tPill(\'venues\',\''+t+'\',this)">'+t+'</span>';});h+='</div>';}
   h+='<div id="venue-cals" style="margin-top:12px"></div>';
+  h+='<div class="sec-div"><div class="sec-lbl">Who Can Find Me</div>';
+  var vis=me.visibleTo;
+  var visMode=vis?'selected':'everyone';
+  h+='<div style="display:flex;gap:10px;margin-bottom:12px">';
+  h+='<label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--td);font-size:14px"><input type="radio" name="vismode" value="everyone" '+(visMode==='everyone'?'checked':'')+' onchange="setVisMode(this.value)"/> Everyone</label>';
+  h+='<label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--td);font-size:14px"><input type="radio" name="vismode" value="selected" '+(visMode==='selected'?'checked':'')+' onchange="setVisMode(this.value)"/> Selected players only</label>';
+  h+='</div>';
+  h+='<div id="vis-panel">'+(visMode==='selected'?buildVisPanel():'')+'</div></div>';
   h+='<label class="flabel">Note to Partners</label>';
   h+='<textarea class="finput" id="p-note" oninput="markDirty()" placeholder="Experience, conventions, what you\'re looking for...">'+(me.note||"")+'</textarea>';
   h+='<button class="btn-big" onclick="saveProfile()">Save Profile</button>';
@@ -988,6 +1032,108 @@ function renderProfile(){
   h+='</div></div>';
   setHTML("content",h);
   renderVenueCalendars();
+}
+
+var _visSelected=[]; // UIDs of players who can find me
+
+function setVisMode(mode){
+  markDirty();
+  var panel=document.getElementById('vis-panel');
+  if(panel)panel.innerHTML=mode==='selected'?buildVisPanel():'';
+}
+
+function buildVisPanel(){
+  var existing=me.visibleTo?
+    (Array.isArray(me.visibleTo)?me.visibleTo:Object.values(me.visibleTo)):[];
+  _visSelected=existing.slice();
+  var h='<div style="margin-bottom:8px">';
+  h+='<div style="font-size:13px;color:var(--tm);margin-bottom:8px">Filter players to add:</div>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
+  h+='<select class="fsel" id="vis-skill-filter" onchange="renderVisPlayerList()" style="font-size:13px"><option value="">Any Skill</option>';
+  SKILL_LEVELS.forEach(function(s){h+='<option>'+s+'</option>';});
+  h+='</select>';
+  h+='<select class="fsel" id="vis-sys-filter" onchange="renderVisPlayerList()" style="font-size:13px"><option value="">Any System</option>';
+  SYSTEMS.filter(function(s){return s!=="Any";}).forEach(function(s){h+='<option>'+s+'</option>';});
+  h+='</select></div>';
+  h+='<div style="display:flex;gap:6px;margin-bottom:8px">';
+  h+='<button class="btn" style="margin-top:0;font-size:13px;padding:6px 12px" onclick="visSelectAll()">Select All</button>';
+  h+='</div>';
+  h+='<div id="vis-player-list"></div>';
+  h+='<div style="margin-top:10px;font-size:13px;font-weight:bold;color:var(--td)" id="vis-selected-count">'+_visSelected.length+' players selected</div>';
+  h+='</div>';
+  setTimeout(function(){renderVisPlayerList();},50);
+  return h;
+}
+
+function renderVisPlayerList(){
+  var list=document.getElementById('vis-player-list');
+  if(!list)return;
+  var skillF=document.getElementById('vis-skill-filter');
+  var sysF=document.getElementById('vis-sys-filter');
+  var skill=skillF?skillF.value:'';
+  var sys=sysF?sysF.value:'';
+  var filtered=players.filter(function(p){
+    if(p.uid===me.uid)return false;
+    if(skill&&p.skill!==skill)return false;
+    if(sys){
+      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+      if(sysList.indexOf(sys)<0)return false;
+    }
+    return true;
+  });
+  var h='';
+  filtered.forEach(function(p){
+    var sel=_visSelected.indexOf(p.uid)>=0;
+    var rowBg=sel?'#e8f5e9':'white';
+    var rowBorder=sel?'#4caf50':'#d0c8a8';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:'+rowBg+';border-radius:4px;margin-bottom:4px;border:1px solid '+rowBorder+'">';
+    h+='<span style="font-size:14px;color:var(--td)">'+p.displayName+'<span style="font-size:12px;color:var(--tl);margin-left:6px">'+p.skill+'</span></span>';
+    h+='<button class="btn" style="margin-top:0;padding:4px 10px;font-size:12px;'+(sel?'background:var(--red);border-color:var(--red);color:white':'')+'" data-uid="'+p.uid+'" onclick="visTogglePlayer(this)">'+(sel?'Remove':'Add')+'</button>';
+    h+='</div>';
+  });
+  if(!filtered.length)h='<div style="color:var(--tl);font-style:italic;font-size:13px;padding:8px">No players match filter.</div>';
+  list.innerHTML=h;
+}
+
+function visTogglePlayer(btn){
+  var uid=btn.getAttribute('data-uid');
+  var idx=_visSelected.indexOf(uid);
+  if(idx===-1)_visSelected.push(uid);
+  else _visSelected.splice(idx,1);
+  markDirty();
+  renderVisPlayerList();
+  var cnt=document.getElementById('vis-selected-count');
+  if(cnt)cnt.textContent=_visSelected.length+' players selected';
+}
+
+function visSelectAll(){
+  var skillF=document.getElementById('vis-skill-filter');
+  var sysF=document.getElementById('vis-sys-filter');
+  var skill=skillF?skillF.value:'';
+  var sys=sysF?sysF.value:'';
+  players.filter(function(p){
+    if(p.uid===me.uid)return false;
+    if(skill&&p.skill!==skill)return false;
+    if(sys){
+      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+      if(sysList.indexOf(sys)<0)return false;
+    }
+    return true;
+  }).forEach(function(p){
+    if(_visSelected.indexOf(p.uid)===-1)_visSelected.push(p.uid);
+  });
+  markDirty();
+  renderVisPlayerList();
+  var cnt=document.getElementById('vis-selected-count');
+  if(cnt)cnt.textContent=_visSelected.length+' players selected';
+}
+
+function getVisibleTo(){
+  var radios=document.querySelectorAll('input[name="vismode"]');
+  var mode='everyone';
+  radios.forEach(function(r){if(r.checked)mode=r.value;});
+  if(mode==='everyone')return null;
+  return _visSelected.length?_visSelected:null;
 }
 
 function saveProfile(){
@@ -1001,7 +1147,7 @@ function saveProfile(){
     systems:getSelectedSystems(),system:getSelectedSystems()[0]||"Standard American",phone:el("p-phone").value.trim(),
     masterpoints:parseInt(el("p-mp").value)||0,
     contactEmail:el("p-cemail")?el("p-cemail").value.trim():"",
-    note:el("p-note").value.trim(),venues:venues,teamPrefs:_teamPrefState
+    note:el("p-note").value.trim(),venues:venues,teamPrefs:_teamPrefState,visibleTo:getVisibleTo()
   });
   savePlayer(me).then(function(){return loadPlayers();}).then(function(){
     _profileDirty=false;
