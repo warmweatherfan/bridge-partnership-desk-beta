@@ -815,11 +815,10 @@ function clearSkillFilter(elem){
   // Filter out players who have restricted visibility and don't include me
   var others=players.filter(function(p){return !me||p.uid!==me.uid;})
     .filter(function(p){
-      // Visibility filter - guests see everyone
-      if(!me)return true;
-      if(!p.visibleTo)return true;
-      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
-      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+      if(!me||!p.visibleTo)return true;
+      var uid=me.uid;
+      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(uid)>=0;
+      return Object.values(p.visibleTo).indexOf(uid)>=0;
     })
     .filter(function(p){
       if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
@@ -1075,11 +1074,10 @@ function renderMessages(){
   // Filter out players who have restricted visibility and don't include me
   var others=players.filter(function(p){return !me||p.uid!==me.uid;})
     .filter(function(p){
-      // Visibility filter - guests see everyone
-      if(!me)return true;
-      if(!p.visibleTo)return true;
-      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
-      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+      if(!me||!p.visibleTo)return true;
+      var uid=me.uid;
+      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(uid)>=0;
+      return Object.values(p.visibleTo).indexOf(uid)>=0;
     })
     .filter(function(p){
       if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
