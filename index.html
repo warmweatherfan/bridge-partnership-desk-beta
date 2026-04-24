@@ -685,7 +685,6 @@ function startGuest(){
 }
 
 function startGuestApp(){
-  alert("startGuestApp called, players: "+players.length);
   document.body.innerHTML='<div class="topbar"><div class="topbar-logo">Bridge Partnership Desk</div>'
     +'<div class="topbar-user"><span style="font-style:italic;font-size:13px;color:var(--cream);opacity:0.7">Guest</span>'
     +'<button class="btn-sm" onclick="renderLogin()">Sign In</button></div></div>'
@@ -693,7 +692,11 @@ function startGuestApp(){
   tab="browse";
   browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
   browseCalY=0;browseCalM=0;
-  renderBrowse();
+  try{
+    renderBrowse();
+  } catch(e){
+    document.getElementById("content").innerHTML='<div class="page"><div class="banner err">Error: '+e.message+'</div></div>';
+  }
 }
 
 function renderRegister(err){
