@@ -676,8 +676,11 @@ function startGuest(){
     location:el("g-location").value.trim()
   };
   me=null;
+  document.body.innerHTML='<div class="loading"><div>Loading...</div></div>';
   Promise.all([loadPlayers(),loadVenueData()]).then(function(){
     startGuestApp();
+  }).catch(function(e){
+    document.body.innerHTML='<div class="loading"><div>Error loading: '+e.message+'<br><br><button onclick="renderGuestEntry()" style="padding:8px 20px;background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold);border-radius:4px;cursor:pointer;font-family:Georgia,serif">Try Again</button></div></div>';
   });
 }
 
@@ -876,7 +879,7 @@ function skillFilterEl(elem){
   elem.classList.toggle('on');
   // Re-render only the player list, not the whole page
   // Filter out players who have restricted visibility and don't include me
-  var others_all=players.filter(function(p){return p.uid!==me.uid;});
+  
   var others=others_all
     .filter(function(p){
       if(!p.visibleTo)return true; // visible to everyone
@@ -901,7 +904,7 @@ function toggleSkillFilter(s,elem){
 
 function renderBrowse(){
   // Filter out players who have restricted visibility and don't include me
-  var others_all=players.filter(function(p){return p.uid!==me.uid;});
+  
   var others=others_all
     .filter(function(p){
       if(!p.visibleTo)return true; // visible to everyone
