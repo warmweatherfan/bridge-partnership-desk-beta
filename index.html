@@ -1038,16 +1038,17 @@ function emailResults(){
   var addr=el("email-results-addr");
   if(!addr||!addr.value.trim()){alert("Please enter an email address.");return;}
   var email=addr.value.trim();
+  // Get UIDs from currently displayed player cards
   var resultsEl=document.getElementById("browse-results");
-  // Build list of currently shown players
+  if(!resultsEl){alert("No results to send.");return;}
+  var cards=resultsEl.querySelectorAll(".card");
+  var shownNames=[];
+  cards.forEach(function(c){
+    var nameEl=c.querySelector(".card-name");
+    if(nameEl)shownNames.push(nameEl.textContent.trim());
+  });
   var shown=players.filter(function(p){
-    if(me&&p.uid===me.uid)return false;
-    if(!p.visibleTo)return true;
-    if(!me)return true;
-    if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
-    return Object.values(p.visibleTo).indexOf(me.uid)>=0;
-  }).filter(function(p){
-    return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;
+    return shownNames.indexOf(p.displayName)>=0;
   }).sort(function(a,b){return matchScore(b)-matchScore(a);});
   if(!shown.length){alert("No players to send.");return;}
   var body="Bridge Partnership Desk - Potential Partners%0D%0A%0D%0A";
