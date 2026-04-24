@@ -791,63 +791,7 @@ function clearSkillFilter(elem){
   browseFilters.skills=[];
   document.querySelectorAll('.skill-pill').forEach(function(p){p.classList.remove('on');});
   elem.classList.add('on');
-  var resultsEl=document.getElementById('browse-results');
-  // Filter out players who have restricted visibility and don't include me
-  var others=players.filter(function(p){return !me||p.uid!==me.uid;})
-    .filter(function(p){
-      if(!me||!p.visibleTo)return true;
-      var uid=me.uid;
-      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(uid)>=0;
-      return Object.values(p.visibleTo).indexOf(uid)>=0;
-    })
-    .filter(function(p){
-      if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
-      return true;
-    })
-    .filter(function(p){
-      if(!browseFilters.venue)return true;
-      return p.venues&&p.venues[browseFilters.venue]!==undefined;
-    })
-    .filter(function(p){
-      if(!browseFilters.date)return true;
-      if(!p.venues)return false;
-      var vList=browseFilters.venue?[browseFilters.venue]:Object.keys(p.venues);
-      return vList.some(function(v){
-        var vd=p.venues[v];
-        if(!vd)return false;
-        if(TOURNAMENTS.hasOwnProperty(v))return vd[browseFilters.date]!==undefined;
-        return Array.isArray(vd)&&vd.indexOf(browseFilters.date)>=0;
-      });
-    })
-    .filter(function(p){
-      if(!browseFilters.session||!browseFilters.venue||!browseFilters.date)return true;
-      if(!TOURNAMENTS.hasOwnProperty(browseFilters.venue))return true;
-      if(!p.venues||!p.venues[browseFilters.venue])return false;
-      var sess=p.venues[browseFilters.venue][browseFilters.date]||[];
-      return Array.isArray(sess)&&sess.indexOf(browseFilters.session)>=0;
-    })
-    .filter(function(p){
-      if(!browseFilters.system)return true;
-      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
-      return sysList.indexOf(browseFilters.system)>=0;
-    })
-    .filter(function(p){
-      if(!browseFilters.role)return true;
-      if(!p.teamPrefs)return false;
-      var searchRole=browseFilters.role;
-      var profileRole=searchRole
-        .replace("Looking for a 0-499 player","I am a 0-499 player")
-        .replace("Looking for a Life Master","I am a Life Master");
-      return Object.keys(p.teamPrefs).some(function(v){
-        return Object.keys(p.teamPrefs[v]).some(function(ds){
-          return Object.keys(p.teamPrefs[v][ds]).some(function(s){
-            return p.teamPrefs[v][ds][s]===profileRole||p.teamPrefs[v][ds][s]===searchRole;
-          });
-        });
-      });
-    });
-  if(resultsEl)resultsEl.innerHTML=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
-  else renderBrowse();
+  renderBrowse();
 }
 
 function skillFilterEl(elem){
@@ -872,9 +816,9 @@ function renderBrowse(){
   
   var others=players.filter(function(p){return !me||p.uid!==me.uid;})
     .filter(function(p){
-      if(!p.visibleTo)return true; // visible to everyone
-      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me&&me.uid)>=0;
-      return Object.values(p.visibleTo).indexOf(me&&me.uid)>=0;
+      if(!me||!p.visibleTo)return true;
+      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
+      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
     })
     .filter(function(p){
       if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
