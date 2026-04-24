@@ -156,7 +156,7 @@ function isSpecialSession(s){return isTeamSession(s)||isProAmSession(s);}
 // ── App State ─────────────────────────────────────────────────────────────────
 var me=null,players=[],messages=[],tab="browse",guestCriteria=null;
 var msgTarget=null,activeThread=null,showPicker=false,msgListener=null,replyTo=null;
-var browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
+var browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:"",anySkill:false};
 var browseCalY=0,browseCalM=0;
 var _venueState={},_sessionState={},_selectedVenues=[],_calState={},_teamPrefState={},_selectedSystems=[];
 var _profileDirty=false;
@@ -585,7 +585,7 @@ function setTab(t){
 function doSetTab(t){
   _profileDirty=false;
   tab=t;renderTabBar();
-  if(t==="browse"){browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};browseCalY=0;browseCalM=0;renderBrowse();}
+  if(t==="browse"){browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:"",anySkill:false};browseCalY=0;browseCalM=0;renderBrowse();}
   if(t==="messages")renderMessages();
   if(t==="profile"){_profileDirty=false;renderProfile();}
   if(t==="admin")renderAdmin();
@@ -681,7 +681,7 @@ function startGuestApp(){
     +'<button class="btn-sm" onclick="renderLogin()">Sign In</button></div></div>'
     +'<div id="content"></div>';
   tab="browse";
-  browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
+  browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:"",anySkill:false};
   browseCalY=0;browseCalM=0;
   try{
     renderBrowse();
@@ -779,7 +779,7 @@ function doForgot(){
 
 function startApp(){
   // Reset all filters on each login
-  browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
+  browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:"",anySkill:false};
   browseCalY=0;browseCalM=0;
   document.body.innerHTML='<div class="topbar"><div class="topbar-logo">Bridge Partnership Desk</div>'
     +'<div class="topbar-user"><span id="topbar-name">'+me.displayName+'</span>'
@@ -800,6 +800,7 @@ function setSessFilter(s){browseFilters.session=s;browseFilters.role="";renderBr
 
 function clearSkillFilter(){
   browseFilters.skills=[];
+  browseFilters.anySkill=true;
   renderBrowse();
 }
 
@@ -807,6 +808,7 @@ function skillFilterEl(elem){
   var s=elem.getAttribute('data-s');
   var idx=browseFilters.skills.indexOf(s);
   if(idx===-1)browseFilters.skills.push(s);else browseFilters.skills.splice(idx,1);
+  browseFilters.anySkill=false;
   elem.classList.toggle('on');
   var anyPill=document.querySelector('.skill-pill:first-child');
   if(anyPill)anyPill.classList.toggle('on',browseFilters.skills.length===0);
@@ -921,7 +923,7 @@ function renderBrowse(){
   // Sort by match score
   others.sort(function(a,b){return matchScore(b)-matchScore(a);});
 
-  var hasFilter=browseFilters.skills.length||browseFilters.venue||browseFilters.date||browseFilters.system||browseFilters.role;
+  var hasFilter=browseFilters.skills.length||browseFilters.anySkill||browseFilters.venue||browseFilters.date||browseFilters.system||browseFilters.role;
   h+='<div id="browse-results">';
   if(!me){
     h+=others.length===0?'<div class="empty">No players found.</div>':others.map(function(p){return playerCardHTML(p,false);}).join("");
