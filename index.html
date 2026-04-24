@@ -854,28 +854,10 @@ function skillFilterEl(elem){
   var s=elem.getAttribute('data-s');
   var idx=browseFilters.skills.indexOf(s);
   if(idx===-1)browseFilters.skills.push(s);else browseFilters.skills.splice(idx,1);
-  // Update "Any Skill Level" pill state
+  elem.classList.toggle('on');
   var anyPill=document.querySelector('.skill-pill:first-child');
   if(anyPill)anyPill.classList.toggle('on',browseFilters.skills.length===0);
-  // Don't call renderBrowse here - update just the results
-  var skills=browseFilters.skills.slice(); // snapshot
-  elem.classList.toggle('on');
-  // Re-render only the player list, not the whole page
-  // Filter out players who have restricted visibility and don't include me
-  
-  var others=players.filter(function(p){return !me||p.uid!==me.uid;})
-    .filter(function(p){
-      if(!p.visibleTo)return true; // visible to everyone
-      if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
-      return Object.values(p.visibleTo).indexOf(me.uid)>=0;
-    })
-    .filter(function(p){return !skills.length||skills.indexOf(p.skill)>=0;});
-  var resultsEl=document.getElementById('browse-results');
-  if(resultsEl){
-    resultsEl.innerHTML=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
-  } else {
-    renderBrowse();
-  }
+  renderBrowse();
 }
 
 function toggleSkillFilter(s,elem){
