@@ -687,6 +687,8 @@ function startGuestApp(){
     +'<button class="btn-sm" onclick="renderLogin()">Sign In</button></div></div>'
     +'<div id="content"></div>';
   tab="browse";
+  browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
+  browseCalY=0;browseCalM=0;
   renderBrowse();
 }
 
@@ -998,12 +1000,15 @@ function renderBrowse(){
   // Sort by match score
   others.sort(function(a,b){return matchScore(b)-matchScore(a);});
 
-  var hasFilter=browseFilters.skills.length||browseFilters.venue||browseFilters.date||browseFilters.system||browseFilters.role||guestCriteria;
+  var hasFilter=browseFilters.skills.length||browseFilters.venue||browseFilters.date||browseFilters.system||browseFilters.role;
   h+='<div id="browse-results">';
-  if(!hasFilter){
+  if(!me){
+    // Guests always see results sorted by match score
+    h+=others.length===0?'<div class="empty">No players found.</div>':others.map(function(p){return playerCardHTML(p,false);}).join("");
+  } else if(!hasFilter){
     h+='<div class="empty" style="opacity:0.5">Use the filters above to find a partner.</div>';
   } else {
-    h+=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p,!me);}).join("");
+    h+=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p,true);}).join("");
   }
   h+='</div></div>';
   setHTML("content",h);
