@@ -153,7 +153,7 @@ function isProAmSession(s){return /pro.?am/i.test(s);}
 function isSpecialSession(s){return isTeamSession(s)||isProAmSession(s);}
 
 // ── App State ─────────────────────────────────────────────────────────────────
-var me=null,players=[],messages=[],tab="browse";
+var me=null,players=[],messages=[],tab="browse",guestCriteria=null;
 var msgTarget=null,activeThread=null,showPicker=false,msgListener=null,replyTo=null;
 var browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:""};
 var browseCalY=0,browseCalM=0;
@@ -162,6 +162,19 @@ var _profileDirty=false;
 
 // ── Array/Object helpers for Firebase ────────────────────────────────────────
 function safeName(s){return s.replace(/[^a-zA-Z0-9]/g,"_");}
+
+function matchScore(p){
+  // Score how well a player matches current user or guest criteria
+  var score=0;
+  var skill=me?me.skill:(guestCriteria?guestCriteria.skill:'');
+  var systems=me?((me.systems&&me.systems.length)?me.systems:[me.system||'']):(guestCriteria&&guestCriteria.system?[guestCriteria.system]:[]);
+  var location=me?me.location:(guestCriteria?guestCriteria.location:'');
+  if(skill&&p.skill===skill)score+=3;
+  var pSystems=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+  systems.forEach(function(s){if(s&&pSystems.indexOf(s)>=0)score+=2;});
+  if(location&&p.location&&p.location.toLowerCase().indexOf(location.toLowerCase())>=0)score+=1;
+  return score;
+}
 
 function loadPlayers(){
   return db.ref("players").get().then(function(snap){
@@ -636,7 +649,45 @@ function renderLogin(err){
     +'<button class="btn-big" onclick="doLogin()">Sign In</button>'
     +'<div style="text-align:center;margin-top:10px;font-size:13px;color:var(--tl)"><span style="color:var(--gold-dim);cursor:pointer;text-decoration:underline" onclick="renderForgot()">Forgot password?</span></div>'
     +'<div class="login-toggle">New here? <span onclick="renderRegister()">Create an account</span></div>'
+    +'<div style="text-align:center;margin-top:14px"><button class="btn" style="width:100%;padding:10px;font-size:14px" onclick="renderGuestEntry()">Browse as Guest</button></div>'
     +'</div></div>';
+}
+
+function renderGuestEntry(){
+  document.body.innerHTML='<div class="login-wrap"><div class="login-box">'
+    +'<div class="login-suits"><span style="color:#1a1208">&#9824;</span><span style="color:#c0392b">&#9829;</span><span style="color:#c0392b">&#9830;</span><span style="color:#1a1208">&#9827;</span></div>'
+    +'<div class="login-title">Browse as Guest</div>'
+    +'<div class="login-sub">Enter some details to find your best matches</div>'
+    +'<label class="flabel">Your Skill Level</label>'
+    +'<select class="finput" id="g-skill"><option value="">Any</option>'+SKILL_LEVELS.map(function(s){return '<option>'+s+'</option>';}).join("")+'</select>'
+    +'<label class="flabel">Your Bidding System</label>'
+    +'<select class="finput" id="g-system"><option value="">Any</option>'+SYSTEMS.filter(function(s){return s!=="Any";}).map(function(s){return '<option>'+s+'</option>';}).join("")+'</select>'
+    +'<label class="flabel">Your Location <span class="flabel-note">(optional)</span></label>'
+    +'<input class="finput" id="g-location" placeholder="City, State"/>'
+    +'<button class="btn-big" style="margin-top:16px" onclick="startGuest()">Find Partners</button>'
+    +'<div class="login-toggle"><span onclick="renderLogin()">Back to Sign In</span></div>'
+    +'</div></div>';
+}
+
+function startGuest(){
+  guestCriteria={
+    skill:el("g-skill").value,
+    system:el("g-system").value,
+    location:el("g-location").value.trim()
+  };
+  me=null;
+  Promise.all([loadPlayers(),loadVenueData()]).then(function(){
+    startGuestApp();
+  });
+}
+
+function startGuestApp(){
+  document.body.innerHTML='<div class="topbar"><div class="topbar-logo">Bridge Partnership Desk</div>'
+    +'<div class="topbar-user"><span style="font-style:italic;font-size:13px;color:var(--cream);opacity:0.7">Guest</span>'
+    +'<button class="btn-sm" onclick="renderLogin()">Sign In</button></div></div>'
+    +'<div id="content"></div>';
+  tab="browse";
+  renderBrowse();
 }
 
 function renderRegister(err){
@@ -753,14 +804,18 @@ function clearSkillFilter(elem){
   elem.classList.add('on');
   var resultsEl=document.getElementById('browse-results');
   // Filter out players who have restricted visibility and don't include me
-  var others=players.filter(function(p){return p.uid!==me.uid;})
+  var others=players.filter(function(p){return !me||p.uid!==me.uid;})
     .filter(function(p){
-      // Visibility filter
+      // Visibility filter - guests see everyone
+      if(!me)return true;
       if(!p.visibleTo)return true;
       if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
       return Object.values(p.visibleTo).indexOf(me.uid)>=0;
     })
-    .filter(function(p){return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;})
+    .filter(function(p){
+      if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
+      return true;
+    })
     .filter(function(p){
       if(!browseFilters.venue)return true;
       return p.venues&&p.venues[browseFilters.venue]!==undefined;
@@ -851,7 +906,10 @@ function renderBrowse(){
       if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
       return Object.values(p.visibleTo).indexOf(me.uid)>=0;
     })
-    .filter(function(p){return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;})
+    .filter(function(p){
+      if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
+      return true;
+    })
     .filter(function(p){
       if(!browseFilters.venue)return true;
       return p.venues&&p.venues[browseFilters.venue]!==undefined;
@@ -901,7 +959,16 @@ function renderBrowse(){
   var tn=Object.keys(TOURNAMENTS);
   if(tn.length)venueOpts+='<optgroup label="Tournaments">'+tn.map(function(t){return '<option value="'+t+'"'+(browseFilters.venue===t?" selected":"")+'>'+t+'</option>';}).join("")+'</optgroup>';
 
-  var h='<div class="page"><div class="page-title">Find a Partner</div><div class="page-sub">Find bridge partners seeking a game</div>';
+  var h='<div class="page"><div class="page-title">Find a Partner</div>';
+  if(!me&&guestCriteria){
+    h+='<div class="banner ok" style="margin-bottom:8px">Browsing as guest'+(guestCriteria.skill?' · '+guestCriteria.skill:'')+(guestCriteria.system?' · '+guestCriteria.system:'')+'  <span style="cursor:pointer;text-decoration:underline;font-size:12px" onclick="renderGuestEntry()">Change</span></div>';
+  }
+  h+='<div class="page-sub">Find bridge partners seeking a game</div>';
+  // Email results field
+  h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;background:rgba(10,24,18,0.6);padding:10px;border-radius:6px;border:1px solid var(--gold-dim)">';
+  h+='<input class="finput" id="email-results-addr" placeholder="Email results to..." style="flex:1;font-size:13px;padding:8px 10px"/>';
+  h+='<button class="btn" style="margin-top:0;white-space:nowrap" onclick="emailResults()">&#128231; Send</button>';
+  h+='</div>';
   h+='<div style="margin-bottom:6px;font-size:12px;color:var(--cream);opacity:0.6">Filter by skill level:</div>';
   h+='<div class="skill-pills">';
   h+='<span class="skill-pill'+(browseFilters.skills.length===0?' on':'')+'" onclick="clearSkillFilter(this)">Any Skill Level</span>';
@@ -928,15 +995,48 @@ function renderBrowse(){
   }
   h+='<span style="color:var(--gold);font-size:13px;font-style:italic">'+others.length+' found</span>';
   h+='</div>';
-  var hasFilter=browseFilters.skills.length||browseFilters.venue||browseFilters.date||browseFilters.system||browseFilters.role;
+  // Sort by match score
+  others.sort(function(a,b){return matchScore(b)-matchScore(a);});
+
+  var hasFilter=browseFilters.skills.length||browseFilters.venue||browseFilters.date||browseFilters.system||browseFilters.role||guestCriteria;
   h+='<div id="browse-results">';
   if(!hasFilter){
     h+='<div class="empty" style="opacity:0.5">Use the filters above to find a partner.</div>';
   } else {
-    h+=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p);}).join("");
+    h+=others.length===0?'<div class="empty">No players match your filters.</div>':others.map(function(p){return playerCardHTML(p,!me);}).join("");
   }
   h+='</div></div>';
   setHTML("content",h);
+}
+
+function emailResults(){
+  var addr=el("email-results-addr");
+  if(!addr||!addr.value.trim()){alert("Please enter an email address.");return;}
+  var email=addr.value.trim();
+  var resultsEl=document.getElementById("browse-results");
+  // Build list of currently shown players
+  var shown=players.filter(function(p){
+    if(me&&p.uid===me.uid)return false;
+    if(!p.visibleTo)return true;
+    if(!me)return true;
+    if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
+    return Object.values(p.visibleTo).indexOf(me.uid)>=0;
+  }).filter(function(p){
+    return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;
+  }).sort(function(a,b){return matchScore(b)-matchScore(a);});
+  if(!shown.length){alert("No players to send.");return;}
+  var body="Bridge Partnership Desk - Potential Partners%0D%0A%0D%0A";
+  shown.forEach(function(p,i){
+    body+=(i+1)+". "+p.displayName+" - "+p.skill;
+    var sys=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+    if(sys.length)body+=" - "+sys.join(", ");
+    if(p.location)body+=" - "+p.location;
+    if(p.contactEmail)body+="%0D%0AEmail: "+p.contactEmail;
+    if(p.phone)body+="%0D%0APhone: "+p.phone;
+    body+="%0D%0A%0D%0A";
+  });
+  var subject="Bridge Partnership Desk - Partner Matches";
+  window.location.href="mailto:"+email+"?subject="+subject+"&body="+body;
 }
 
 function startMsg(uid){msgTarget=uid;setTab("messages");}
@@ -946,6 +1046,7 @@ function renderMessages(){
   if(msgTarget){activeThread=msgTarget;msgTarget=null;markRead(activeThread);}
   // Only allow messaging players who have me in their visibleTo (or have no restriction)
   function canMessagePlayer(uid){
+    if(!me)return false;
     var p=players.find(function(x){return x.uid===uid;});
     if(!p||!p.visibleTo)return true;
     if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
@@ -960,14 +1061,18 @@ function renderMessages(){
   var convo=activeThread?(threads[activeThread]||[]):[];
   var ap=activeThread?players.find(function(p){return p.uid===activeThread;}):null;
   // Filter out players who have restricted visibility and don't include me
-  var others=players.filter(function(p){return p.uid!==me.uid;})
+  var others=players.filter(function(p){return !me||p.uid!==me.uid;})
     .filter(function(p){
-      // Visibility filter
+      // Visibility filter - guests see everyone
+      if(!me)return true;
       if(!p.visibleTo)return true;
       if(Array.isArray(p.visibleTo))return p.visibleTo.indexOf(me.uid)>=0;
       return Object.values(p.visibleTo).indexOf(me.uid)>=0;
     })
-    .filter(function(p){return !browseFilters.skills.length||browseFilters.skills.indexOf(p.skill)>=0;})
+    .filter(function(p){
+      if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
+      return true;
+    })
     .filter(function(p){
       if(!browseFilters.venue)return true;
       return p.venues&&p.venues[browseFilters.venue]!==undefined;
