@@ -822,6 +822,7 @@ function clearSkillFilter(elem){
     })
     .filter(function(p){
       if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
+      if(!me&&guestCriteria&&guestCriteria.skill)return p.skill===guestCriteria.skill;
       return true;
     })
     .filter(function(p){
@@ -847,9 +848,15 @@ function clearSkillFilter(elem){
       return Array.isArray(sess)&&sess.indexOf(browseFilters.session)>=0;
     })
     .filter(function(p){
-      if(!browseFilters.system)return true;
-      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
-      return sysList.indexOf(browseFilters.system)>=0;
+      if(browseFilters.system){
+        var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+        return sysList.indexOf(browseFilters.system)>=0;
+      }
+      if(!me&&guestCriteria&&guestCriteria.system){
+        var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+        return sysList.indexOf(guestCriteria.system)>=0;
+      }
+      return true;
     })
     .filter(function(p){
       if(!browseFilters.role)return true;
@@ -916,6 +923,7 @@ function renderBrowse(){
     })
     .filter(function(p){
       if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
+      if(!me&&guestCriteria&&guestCriteria.skill)return p.skill===guestCriteria.skill;
       return true;
     })
     .filter(function(p){
@@ -941,9 +949,15 @@ function renderBrowse(){
       return Array.isArray(sess)&&sess.indexOf(browseFilters.session)>=0;
     })
     .filter(function(p){
-      if(!browseFilters.system)return true;
-      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
-      return sysList.indexOf(browseFilters.system)>=0;
+      if(browseFilters.system){
+        var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+        return sysList.indexOf(browseFilters.system)>=0;
+      }
+      if(!me&&guestCriteria&&guestCriteria.system){
+        var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+        return sysList.indexOf(guestCriteria.system)>=0;
+      }
+      return true;
     })
     .filter(function(p){
       if(!browseFilters.role)return true;
@@ -1081,6 +1095,7 @@ function renderMessages(){
     })
     .filter(function(p){
       if(browseFilters.skills.length)return browseFilters.skills.indexOf(p.skill)>=0;
+      if(!me&&guestCriteria&&guestCriteria.skill)return p.skill===guestCriteria.skill;
       return true;
     })
     .filter(function(p){
@@ -1106,9 +1121,15 @@ function renderMessages(){
       return Array.isArray(sess)&&sess.indexOf(browseFilters.session)>=0;
     })
     .filter(function(p){
-      if(!browseFilters.system)return true;
-      var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
-      return sysList.indexOf(browseFilters.system)>=0;
+      if(browseFilters.system){
+        var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+        return sysList.indexOf(browseFilters.system)>=0;
+      }
+      if(!me&&guestCriteria&&guestCriteria.system){
+        var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
+        return sysList.indexOf(guestCriteria.system)>=0;
+      }
+      return true;
     })
     .filter(function(p){
       if(!browseFilters.role)return true;
