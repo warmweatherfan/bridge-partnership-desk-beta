@@ -767,8 +767,18 @@ function doRegister(){
   if(pw!==pw2){renderRegister("Passwords do not match.");return;}
   auth.createUserWithEmailAndPassword(email,pw).then(function(cred){
     me={uid:cred.user.uid,displayName:name,skill:"Intermediate",location:"",system:"Standard American",masterpoints:0,note:"",phone:"",contactEmail:"",venues:{},teamPrefs:{},admin:false};
+    cred.user.sendEmailVerification();
     return savePlayer(me);
-  }).then(function(){return loadPlayers();}).then(function(){startApp();})
+  }).then(function(){return loadPlayers();}).then(function(){
+    // Show confirmation screen before starting app
+    document.body.innerHTML='<div class="login-wrap"><div class="login-box">'
+      +'<div class="login-suits"><span style="color:#1a1208">&#9824;</span><span style="color:#c0392b">&#9829;</span><span style="color:#c0392b">&#9830;</span><span style="color:#1a1208">&#9827;</span></div>'
+      +'<div class="login-title" style="color:#2e7d32">Welcome, '+name+'!</div>'
+      +'<div style="text-align:center;font-size:48px;margin:16px 0">&#128140;</div>'
+      +'<div style="text-align:center;font-size:15px;color:var(--tm);line-height:1.7;margin-bottom:20px">A confirmation email has been sent to <strong>'+email+'</strong>.<br><br>Please check your inbox — and your spam folder if you do not see it.</div>'
+      +'<button class="btn-big" onclick="startApp()">Continue to App</button>'
+      +'</div></div>';
+  })
   .catch(function(e){
     renderRegister(e.code==="auth/email-already-in-use"?"That email is already registered. Please sign in.":"Registration failed.");
   });
@@ -959,6 +969,7 @@ function emailResults(){
   var body="Bridge Partnership Desk - Potential Partners%0D%0A%0D%0A";
   shown.forEach(function(p,i){
     body+=(i+1)+". "+p.displayName+" - "+p.skill;
+    if(p.masterpoints)body+=" - "+Number(p.masterpoints).toLocaleString()+" MPs";
     var sys=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
     if(sys.length)body+=" - "+sys.join(", ");
     if(p.location)body+=" - "+p.location;
@@ -1129,7 +1140,7 @@ function renderProfile(){
   h+='<input class="finput" id="p-phone" value="'+(me.phone||"")+'" placeholder="555-000-0000" oninput="markDirty()"/>';
   h+='<label class="flabel">Contact Email <span class="flabel-note">(optional — lets others email you directly)</span></label>';
   h+='<input class="finput" type="email" id="p-cemail" value="'+(me.contactEmail||"")+'" placeholder="your@email.com" oninput="markDirty()"/>';
-  h+='<label class="flabel">ACBL Number <span class="flabel-note">(optional)</span></label>';
+  h+='<label class="flabel">ACBL Number <span class="flabel-note">(optional — lets others view your ACBL tournament results)</span></label>';
   h+='<input class="finput" id="p-acbl" value="'+(me.acblNumber||"")+'" placeholder="e.g. 9258256" oninput="markDirty()"/>';
   h+='<label class="flabel" style="margin-top:16px">Clubs and Tournaments</label>';
   h+='<div style="font-size:12px;color:var(--tl);margin-bottom:6px">Select where you play, then pick your available dates.</div>';
