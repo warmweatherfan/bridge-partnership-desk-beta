@@ -155,7 +155,7 @@ function isProAmSession(s){return /pro.?am/i.test(s);}
 function isSpecialSession(s){return isTeamSession(s)||isProAmSession(s);}
 
 // ── App State ─────────────────────────────────────────────────────────────────
-var me=null,players=[],messages=[],tab="browse",guestCriteria=null;
+var me=null,players=[],messages=[],tab="browse",guestCriteria=null,_registering=false;
 var msgTarget=null,activeThread=null,showPicker=false,msgListener=null,replyTo=null;
 var browseFilters={skills:[],venue:"",date:"",session:"",role:"",system:"",anySkill:false};
 var browseCalY=0,browseCalM=0;
@@ -765,11 +765,13 @@ function doRegister(){
   if(!email){renderRegister("Please enter your email address.");return;}
   if(pw.length<6){renderRegister("Password must be at least 6 characters.");return;}
   if(pw!==pw2){renderRegister("Passwords do not match.");return;}
+  _registering=true;
   auth.createUserWithEmailAndPassword(email,pw).then(function(cred){
     me={uid:cred.user.uid,displayName:name,skill:"Intermediate",location:"",system:"Standard American",masterpoints:0,note:"",phone:"",contactEmail:"",venues:{},teamPrefs:{},admin:false};
     cred.user.sendEmailVerification();
     return savePlayer(me);
   }).then(function(){return loadPlayers();}).then(function(){
+    _registering=false;
     // Show confirmation screen before starting app
     document.body.innerHTML='<div class="login-wrap"><div class="login-box">'
       +'<div class="login-suits"><span style="color:#1a1208">&#9824;</span><span style="color:#c0392b">&#9829;</span><span style="color:#c0392b">&#9830;</span><span style="color:#1a1208">&#9827;</span></div>'
@@ -780,6 +782,7 @@ function doRegister(){
       +'</div></div>';
   })
   .catch(function(e){
+    _registering=false;
     renderRegister(e.code==="auth/email-already-in-use"?"That email is already registered. Please sign in.":"Registration failed.");
   });
 }
@@ -1539,7 +1542,7 @@ window.onload=function(){
   auth.onAuthStateChanged(function(user){
     if(user){
       // Only handle if not already logged in
-      if(!me){handleUser(user);}
+      if(!me&&!_registering){handleUser(user);}
     } else if(false){ // placeholder to keep catch block
       loadPlayers().catch(function(e){
         document.body.innerHTML='<div class="loading"><div>Could not load: '+e.message+'<br><br><button onclick="location.reload()" style="padding:8px 20px;background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold);border-radius:4px;cursor:pointer;font-family:Georgia,serif">Try Again</button></div></div>';
