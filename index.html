@@ -250,7 +250,7 @@ function savePlayer(p){
     location:p.location||"",system:sysList[0]||"Standard American",
     systems:sysList,
     masterpoints:p.masterpoints||0,note:p.note||"",phone:p.phone||"",
-    contactEmail:p.contactEmail||"",venues:p.venues||{},
+    contactEmail:p.contactEmail||"",acblNumber:p.acblNumber||"",venues:p.venues||{},
     teamPrefs:p.teamPrefs||{},admin:p.admin===true,
     visibleTo:p.visibleTo||null
   });
@@ -1127,6 +1127,8 @@ function renderProfile(){
   h+='<input class="finput" id="p-phone" value="'+(me.phone||"")+'" placeholder="555-000-0000" oninput="markDirty()"/>';
   h+='<label class="flabel">Contact Email <span class="flabel-note">(optional — lets others email you directly)</span></label>';
   h+='<input class="finput" type="email" id="p-cemail" value="'+(me.contactEmail||"")+'" placeholder="your@email.com" oninput="markDirty()"/>';
+  h+='<label class="flabel">ACBL Number <span class="flabel-note">(optional)</span></label>';
+  h+='<input class="finput" id="p-acbl" value="'+(me.acblNumber||"")+'" placeholder="e.g. 9258256" oninput="markDirty()"/>';
   h+='<label class="flabel" style="margin-top:16px">Clubs and Tournaments</label>';
   h+='<div style="font-size:12px;color:var(--tl);margin-bottom:6px">Select where you play, then pick your available dates.</div>';
   if(CLUBS.length){h+='<div style="font-size:12px;font-weight:bold;color:var(--tl);margin-bottom:4px">CLUBS</div><div class="pills">';CLUBS.forEach(function(c){h+='<span class="pill'+(_selectedVenues.indexOf(c)>=0?" on":"")+'" onclick="tPill(\'venues\',\''+c+'\',this)">'+c+'</span>';});h+='</div>';}
@@ -1267,6 +1269,7 @@ function saveProfile(){
     systems:getSelectedSystems(),system:getSelectedSystems()[0]||"Standard American",phone:el("p-phone").value.trim(),
     masterpoints:parseInt(el("p-mp").value)||0,
     contactEmail:el("p-cemail")?el("p-cemail").value.trim():"",
+    acblNumber:el("p-acbl")?el("p-acbl").value.trim():"",
     note:el("p-note").value.trim(),venues:venues,teamPrefs:_teamPrefState,visibleTo:getVisibleTo()
   });
   savePlayer(me).then(function(){return loadPlayers();}).then(function(){
