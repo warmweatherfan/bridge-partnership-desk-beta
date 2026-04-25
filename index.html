@@ -1186,6 +1186,7 @@ function buildVisPanel(){
   _visSelected=existing.slice();
   var h='<div style="margin-bottom:8px">';
   h+='<div style="font-size:13px;color:var(--tm);margin-bottom:8px">Filter players to add:</div>';
+  h+='<input class="finput" id="vis-name-filter" placeholder="Search by name..." oninput="renderVisPlayerList()" style="margin-bottom:8px;font-size:13px;padding:8px 10px"/>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
   h+='<select class="fsel" id="vis-skill-filter" onchange="renderVisPlayerList()" style="font-size:13px"><option value="">Any Skill</option>';
   SKILL_LEVELS.forEach(function(s){h+='<option>'+s+'</option>';});
@@ -1208,8 +1209,10 @@ function renderVisPlayerList(){
   if(!list)return;
   var skillF=document.getElementById('vis-skill-filter');
   var sysF=document.getElementById('vis-sys-filter');
+  var nameF=document.getElementById('vis-name-filter');
   var skill=skillF?skillF.value:'';
   var sys=sysF?sysF.value:'';
+  var nameQ=(nameF?nameF.value:'').toLowerCase().trim();
   var filtered=players.filter(function(p){
     if(p.uid===me.uid)return false;
     if(skill&&p.skill!==skill)return false;
@@ -1217,8 +1220,11 @@ function renderVisPlayerList(){
       var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
       if(sysList.indexOf(sys)<0)return false;
     }
+    if(nameQ&&p.displayName.toLowerCase().indexOf(nameQ)<0)return false;
     return true;
   });
+  // Sort alphabetically
+  filtered.sort(function(a,b){return a.displayName.localeCompare(b.displayName);});
   var h='';
   filtered.forEach(function(p){
     var sel=_visSelected.indexOf(p.uid)>=0;
