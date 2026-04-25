@@ -138,7 +138,8 @@ var auth=firebase.auth();
 var db=firebase.database();
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-var ADMIN_EMAIL="thomasmshea@gmail.com"; // Update with real admin email
+var ADMIN_EMAIL="thomasmshea@gmail.com";
+var CLUB_IDS={"Family Friendly":271817,"Bay State Wellesley":251371,"Puritan":120717,"Bay State Peabody":280487,"Belmont":263731}; // Update with real admin email
 var SKILL_LEVELS=["Beginner","Intermediate","Advanced","Expert"];
 var SYSTEMS=["2/1 GF","Acol","Precision","SAYC","Any"];
 var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -338,6 +339,15 @@ function playerCardHTML(p,msgBtn){
   if(p.note)h+='<div class="card-note">"'+p.note+'"</div>';
   if(msgBtn)h+='<button class="btn" onclick="startMsg(\''+p.uid+'\')">&#9993; Message '+p.displayName.split(" ")[0]+'</button>';
   if(p.acblNumber)h+='<a href="https://live.acbl.org/player-results/'+p.acblNumber+'" target="_blank" style="display:inline-block;margin-top:10px;margin-right:6px;padding:8px 16px;border-radius:4px;border:1px solid var(--gold-dim);background:var(--felt);color:var(--gold);font-size:14px;text-decoration:none;font-family:Georgia,serif">&#127942; ACBL Results</a>';
+  // Club results buttons for each club the player plays at
+  if(p.acblNumber&&p.venues){
+    Object.keys(p.venues).forEach(function(v){
+      var clubId=CLUB_IDS[v];
+      if(clubId){
+        h+='<a href="https://my.acbl.org/club-results/'+clubId+'" target="_blank" style="display:inline-block;margin-top:6px;margin-right:6px;padding:6px 12px;border-radius:4px;border:1px solid var(--gold-dim);background:var(--felt);color:var(--gold);font-size:13px;text-decoration:none;font-family:Georgia,serif">&#127183; '+v+' Results</a>';
+      }
+    });
+  }
   if(p.contactEmail)h+='<a href="mailto:'+p.contactEmail+'" style="display:inline-block;margin-top:10px;margin-right:6px;padding:8px 16px;border-radius:4px;border:1px solid var(--gold-dim);background:var(--felt);color:var(--gold);font-size:14px;text-decoration:none;font-family:Georgia,serif">&#128231; Email '+p.displayName.split(" ")[0]+'</a>';
 
   h+='</div>';
