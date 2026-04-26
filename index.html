@@ -1332,6 +1332,35 @@ function renderHelp(){
   setHTML("content",h);
 }
 
+function cleanupSystems(){
+  if(!confirm("Remove Standard American from all player profiles that have other systems selected?"))return;
+  var updates=[];
+  players.forEach(function(p){
+    if(!p.systems||!p.systems.length)return;
+    var sys=Array.isArray(p.systems)?p.systems:Object.values(p.systems);
+    var filtered=sys.filter(function(s){return s!=="Standard American";});
+    if(filtered.length<sys.length){
+      // Had Standard American, now removed
+      updates.push({uid:p.uid,systems:filtered,system:filtered[0]||""});
+    }
+  });
+  if(!updates.length){
+    setHTML("cleanup-banner",'<div class="banner ok">No cleanup needed — no Standard American found.</div>');
+    return;
+  }
+  var promises=updates.map(function(u){
+    return db.ref("players/"+u.uid).update({systems:u.systems,system:u.system});
+  });
+  Promise.all(promises).then(function(){
+    return loadPlayers();
+  }).then(function(){
+    setHTML("cleanup-banner",'<div class="banner ok">Cleaned up '+updates.length+' player profile(s).</div>');
+    setTimeout(function(){setHTML("cleanup-banner","");},4000);
+  }).catch(function(e){
+    setHTML("cleanup-banner",'<div class="banner err">Error: '+e.message+'</div>');
+  });
+}
+
 function renderAdmin(){
   if(!me||(me.admin!==true&&me.admin!=="true")){setHTML("content",'<div class="page"><div class="empty">Access denied.</div></div>');return;}
   var h='<div class="page"><div class="page-title">Admin Panel</div><div class="page-sub">Manage clubs, tournaments and users</div>';
