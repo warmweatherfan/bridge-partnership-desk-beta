@@ -129,6 +129,7 @@
     .tourn-card{background:#f5f0e8;border-radius:6px;padding:12px;margin-bottom:10px;border:1px solid var(--cream-dark)}
     .tourn-card-title{font-weight:bold;font-size:14px;color:var(--td);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
   </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 <script>
@@ -1325,7 +1326,15 @@ function changePw(){
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 function renderHelp(){
+  var appUrl=window.location.origin+window.location.pathname;
   var h='<div class="page"><div class="page-title">Help</div><div class="page-sub">Support and information</div>';
+  h+='<div class="form-box" style="margin-bottom:16px">';
+  h+='<div style="font-size:16px;font-weight:bold;color:var(--td);margin-bottom:8px">Share This App</div>';
+  h+='<div style="font-size:14px;color:var(--tm);margin-bottom:12px;line-height:1.6">Show this QR code at your tournament or club so players can find partners instantly.</div>';
+  h+='<div id="qr-code" style="background:white;padding:16px;border-radius:8px;display:inline-block;margin-bottom:12px"></div>';
+  h+='<div style="font-size:12px;color:var(--tl);margin-bottom:12px;word-break:break-all">'+appUrl+'</div>';
+  h+='<button class="btn btn-gold" style="margin-top:0" onclick="printQR()">&#128438; Print QR Code</button>';
+  h+='</div>';
   h+='<div class="form-box" style="margin-bottom:16px">';
   h+='<div style="font-size:16px;font-weight:bold;color:var(--td);margin-bottom:8px">Contact Administrator</div>';
   h+='<div style="font-size:14px;color:var(--tm);margin-bottom:14px;line-height:1.6">Have a question, problem, or suggestion? Send us an email and we will get back to you.</div>';
@@ -1337,6 +1346,34 @@ function renderHelp(){
   h+='</div>';
   h+='</div>';
   setHTML("content",h);
+  // Generate QR code after DOM is ready
+  setTimeout(function(){
+    if(typeof QRCode!=="undefined"){
+      new QRCode(document.getElementById("qr-code"),{
+        text:appUrl,
+        width:200,
+        height:200,
+        colorDark:"#1a1208",
+        colorLight:"#ffffff"
+      });
+    }
+  },100);
+}
+
+function printQR(){
+  var qr=document.getElementById("qr-code");
+  if(!qr)return;
+  var img=qr.querySelector("img");
+  if(!img)return;
+  var w=window.open("","_blank");
+  w.document.write('<html><body style="text-align:center;padding:40px;font-family:Georgia,serif">');
+  w.document.write('<h2 style="color:#1a1208">Bridge Partnership Desk</h2>');
+  w.document.write('<p style="color:#4a3f28;margin-bottom:20px">Scan to find a bridge partner</p>');
+  w.document.write('<img src="'+img.src+'" style="width:300px;height:300px"/>');
+  w.document.write('<p style="color:#8a7a5a;margin-top:20px;font-size:14px">'+window.location.origin+window.location.pathname+'</p>');
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
 }
 
 function cleanupSystems(){
