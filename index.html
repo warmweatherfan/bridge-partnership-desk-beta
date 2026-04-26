@@ -1364,6 +1364,10 @@ function cleanupSystems(){
 function renderAdmin(){
   if(!me||(me.admin!==true&&me.admin!=="true")){setHTML("content",'<div class="page"><div class="empty">Access denied.</div></div>');return;}
   var h='<div class="page"><div class="page-title">Admin Panel</div><div class="page-sub">Manage clubs, tournaments and users</div>';
+  h+='<div class="admin-section"><h3>Maintenance</h3>';
+  h+='<div style="font-size:13px;color:var(--tm);margin-bottom:10px">Clean up legacy data from all player profiles.</div>';
+  h+='<button class="btn btn-gold" style="margin-top:0" onclick="cleanupSystems()">Remove Standard American from all profiles</button>';
+  h+='<div id="cleanup-banner"></div></div>';
   h+='<div class="admin-section"><h3>Clubs</h3>';
   if(CLUBS.length)CLUBS.forEach(function(c,i){h+='<div class="admin-row"><span>'+c+'</span><button class="btn btn-red" style="margin-top:0;padding:4px 10px;font-size:12px" onclick="adminDeleteClub('+i+')">Delete</button></div>';});
   else h+='<div style="color:var(--tl);font-style:italic;font-size:14px;padding:8px 0">No clubs yet.</div>';
