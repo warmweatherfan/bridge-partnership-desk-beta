@@ -248,7 +248,7 @@ function savePlayer(p){
   var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:["Standard American"]);
   return db.ref("players/"+p.uid).set({
     uid:p.uid,displayName:p.displayName,skill:p.skill||"Intermediate",
-    location:p.location||"",system:sysList[0]||"Standard American",
+    location:p.location||"",system:sysList[0]||"",
     systems:sysList,
     masterpoints:p.masterpoints||0,note:p.note||"",phone:p.phone||"",
     contactEmail:p.contactEmail||"",acblNumber:p.acblNumber||"",venues:p.venues||{},
@@ -297,8 +297,8 @@ function playerCardHTML(p,msgBtn){
   h+=skillBadge(p.skill);
   h+='<div class="card-meta">';
   if(p.location)h+='&#128205; '+p.location+'&nbsp;&nbsp;';
-  var sysList=p.systems&&p.systems.length?p.systems:(p.system?[p.system]:[]);
-  h+='&#127183; '+sysList.join(', ');
+  var sysList=p.systems&&p.systems.length?p.systems:(p.system&&p.system!=="Standard American"?[p.system]:[]);
+  if(sysList.length)h+='&#127183; '+sysList.join(', ');
   h+='</div>';
   var venues=p.venues||{};
   Object.keys(venues).forEach(function(v){
@@ -572,7 +572,7 @@ function toggleSysPill(elem){
 }
 
 function getSelectedSystems(){
-  return _selectedSystems.length?_selectedSystems:["Standard American"];
+  return _selectedSystems;
 }
 
 function markDirty(){_profileDirty=true;}
